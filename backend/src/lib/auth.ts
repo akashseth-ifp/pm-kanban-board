@@ -10,6 +10,12 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
+    socialProviders: {
+        github: { 
+            clientId: process.env.GITHUB_CLIENT_ID as string, 
+            clientSecret: process.env.GITHUB_CLIENT_SECRET as string, 
+        },
+    },
     trustedOrigins: [
         "http://127.0.0.1:3000",
         "http://localhost:3000", // In case frontend runs here later

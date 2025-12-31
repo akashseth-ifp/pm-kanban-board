@@ -33,17 +33,18 @@ export const emailSignInAPI = async (email: string, password: string) => {
     }
 }
 
-export const googleSignInAPI = async () => {
+export const githubSignInAPI = async () => {
     try {
         const {data, error} = await authClient.signIn.social({
-            provider: "google",
+            provider: "github",
+            callbackURL: "http://localhost:3000",
         })
         if(error) {
             throw error
         }
         return data 
     } catch (error) {
-        console.log("googleSignInAPI error", error)
+        console.log("githubSignInAPI error", error)
         throw error
     }
 }
