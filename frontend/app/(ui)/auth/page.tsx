@@ -71,7 +71,7 @@ export default function AuthPage() {
     const {mutateAsync: emailSignInMutation, isPending: emailSignInLoading} = useMutation({
         mutationFn: (data: FormData) => emailSignInAPI(data.email, data.password),
         onSuccess: () => {
-            router.replace("/");
+            router.replace("/dashboard");
         },
         onError: (error) => {
             toast.error(`Failed to sign in: ${error.message}`);
@@ -81,7 +81,7 @@ export default function AuthPage() {
     const {mutateAsync: emailSignUpMutation, isPending: emailSignUpLoading} = useMutation({
         mutationFn: (data: FormData) => emailSignUpAPI(data.email, data.password, data.name || ""),
         onSuccess: () => {
-            router.replace("/");
+            router.replace("/dashboard");
         },
         onError: (error) => {
             toast.error(`Failed to sign up: ${error.message}`);
@@ -91,7 +91,7 @@ export default function AuthPage() {
     const {mutateAsync: githubSignInMutation, isPending: githubSignInLoading} = useMutation({
         mutationFn: () => githubSignInAPI(),
         onSuccess: () => {
-            router.replace("/");
+            router.replace("/dashboard");
         },
         onError: (error) => {
             toast.error(`Failed to sign in with Google: ${error.message}`);

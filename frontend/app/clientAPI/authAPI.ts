@@ -37,7 +37,7 @@ export const githubSignInAPI = async () => {
     try {
         const {data, error} = await authClient.signIn.social({
             provider: "github",
-            callbackURL: "http://localhost:3000",
+            callbackURL: "http://localhost:3000/dashboard",
         })
         if(error) {
             throw error
