@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { db } from "../db";
-import { board } from "../schema/board";
+import { board } from "../schema/board.schema";
 import { eq, desc } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth.middleware";
 
