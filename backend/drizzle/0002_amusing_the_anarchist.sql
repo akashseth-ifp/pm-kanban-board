@@ -1,0 +1,3 @@
+ALTER TABLE "boards" ALTER COLUMN "background" SET DEFAULT 'gradient1';--> statement-breakpoint
+ALTER TABLE "boards" ALTER COLUMN "background" SET NOT NULL;--> statement-breakpoint
+ALTER TABLE "boards" ADD CONSTRAINT "background_check" CHECK ("boards"."background" IN ('gradient1', 'gradient2', 'gradient3', 'gradient4', 'gradient5', 'gradient6', 'gradient7', 'gradient8', 'gradient9', 'gradient10', 'gradient11', 'gradient12', 'gradient13', 'gradient14', 'gradient15', 'gradient16', 'gradient17', 'gradient18', 'gradient19', 'gradient20'));

@@ -15,6 +15,13 @@
       "when": 1767266411146,
       "tag": "0001_clever_overlord",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1767274161008,
+      "tag": "0002_amusing_the_anarchist",
+      "breakpoints": true
     }
   ]
 }
