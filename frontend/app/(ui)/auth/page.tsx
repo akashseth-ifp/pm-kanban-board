@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import illustration from "@/app/assets/illustration.webp";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { emailSignInAPI, emailSignUpAPI, githubSignInAPI } from "@/clientAPI/authAPI";
 
 import { useForm } from "react-hook-form";
@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTransitionRouter } from "next-view-transitions";
 
 const loginSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -30,7 +31,7 @@ type FormData = z.infer<typeof loginSchema> & { name?: string };
 
 export default function AuthPage() {
     const searchParams = useSearchParams();
-    const router = useRouter();
+    const router = useTransitionRouter();
     
     const action = searchParams.get("action");
     const isRegister = action === "signup";

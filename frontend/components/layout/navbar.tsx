@@ -15,15 +15,15 @@ import { useTheme } from "next-themes";
 import { useMutation } from "@tanstack/react-query";
 import { signOutAPI } from "@/clientAPI/authAPI";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { useTransitionRouter } from "next-view-transitions";
 
 export function Navbar() {
   const { setTheme, theme } = useTheme();
   const {data: session } = useSession();
   const user = session?.user;
+  const router = useTransitionRouter()
 
-  const router = useRouter();
 
   const {mutateAsync: signOut} = useMutation({
     mutationFn: () => signOutAPI(),

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto } from "next/font/google";
+import { ViewTransitions } from 'next-view-transitions'
 import "./globals.css";
 import QueryProvider from "@/components/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -28,6 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <ViewTransitions>
     <html lang="en" className={roboto.variable} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -50,5 +52,6 @@ export default function RootLayout({
         </QueryProvider>
       </body>
     </html>
+    </ViewTransitions>
   );
 }
