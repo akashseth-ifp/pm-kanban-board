@@ -37,7 +37,7 @@ export const githubSignInAPI = async () => {
     try {
         const {data, error} = await authClient.signIn.social({
             provider: "github",
-            callbackURL: "http://localhost:3000/dashboard",
+            callbackURL: "http://localhost:3000/app/dashboard",
         })
         if(error) {
             throw error
@@ -45,6 +45,19 @@ export const githubSignInAPI = async () => {
         return data 
     } catch (error) {
         console.log("githubSignInAPI error", error)
+        throw error
+    }
+}
+
+export const signOutAPI = async () => {
+    try {
+        const {data, error} = await authClient.signOut()
+        if(error) {
+            throw error
+        }
+        return data 
+    } catch (error) {
+        console.log("signOutAPI error", error)
         throw error
     }
 }

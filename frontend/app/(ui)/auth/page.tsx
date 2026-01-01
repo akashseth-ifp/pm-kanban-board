@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import illustration from "@/app/assets/illustration.webp";
 import { useRouter, useSearchParams } from "next/navigation";
-import { emailSignInAPI, emailSignUpAPI, githubSignInAPI } from "@/app/clientAPI/authAPI";
+import { emailSignInAPI, emailSignUpAPI, githubSignInAPI } from "@/clientAPI/authAPI";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,7 +71,7 @@ export default function AuthPage() {
     const {mutateAsync: emailSignInMutation, isPending: emailSignInLoading} = useMutation({
         mutationFn: (data: FormData) => emailSignInAPI(data.email, data.password),
         onSuccess: () => {
-            router.replace("/dashboard");
+            router.replace("/app");
         },
         onError: (error) => {
             toast.error(`Failed to sign in: ${error.message}`);
@@ -81,7 +81,7 @@ export default function AuthPage() {
     const {mutateAsync: emailSignUpMutation, isPending: emailSignUpLoading} = useMutation({
         mutationFn: (data: FormData) => emailSignUpAPI(data.email, data.password, data.name || ""),
         onSuccess: () => {
-            router.replace("/dashboard");
+            router.replace("/app");
         },
         onError: (error) => {
             toast.error(`Failed to sign up: ${error.message}`);
@@ -91,7 +91,7 @@ export default function AuthPage() {
     const {mutateAsync: githubSignInMutation, isPending: githubSignInLoading} = useMutation({
         mutationFn: () => githubSignInAPI(),
         onSuccess: () => {
-            router.replace("/dashboard");
+            router.replace("/app");
         },
         onError: (error) => {
             toast.error(`Failed to sign in with Google: ${error.message}`);
