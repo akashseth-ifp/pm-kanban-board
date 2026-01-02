@@ -43,7 +43,7 @@ export const getBoardAPI = async (id: string): Promise<Board> => {
 
 export const updateBoardAPI = async (id: string, data: UpdateBoardData): Promise<Board> => {
     return fetchWithAuth(`${API_URL}/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(data),
     });
 };
