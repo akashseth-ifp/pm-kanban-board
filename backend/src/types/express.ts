@@ -1,5 +1,6 @@
 import { auth } from "../lib/auth";
 import logger from "../lib/logger";
+import { Board } from "../schema/board.schema";
 
 declare global {
     namespace Express {
@@ -7,6 +8,7 @@ declare global {
             user?: typeof auth.$Infer.Session.user;
             session?: typeof auth.$Infer.Session.session;
             log: typeof logger;
+            board?: Board;
         }
     }
 }
