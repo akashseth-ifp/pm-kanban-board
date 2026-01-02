@@ -8,6 +8,7 @@ export const ticket = pgTable("tickets", {
     title: text("title").notNull(),
     description: text("description"),
     assignee: uuid("assignee").references(() => user.id),
+    reporter: uuid("reporter").references(() => user.id),
     priority: text("priority").notNull().default('Low'),
     status: text("status").notNull().default('Todo'),
     position: doublePrecision("position").notNull().default(0),
