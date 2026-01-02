@@ -3,7 +3,9 @@ import './types/express';
 import express, { Express } from 'express';
 import cors from 'cors';
 import router from './routes';
-
+import helmet from 'helmet';
+import pinoHttp from 'pino-http';
+import logger from './lib/logger';
 console.log("Current Environment:", process.env.NODE_ENV);
 console.log("Current Port:", process.env.PORT);
 
@@ -15,9 +17,22 @@ app.use(cors({
     origin: "http://localhost:3000",
     credentials: true,
 }));
+
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware for request logging
+app.use(
+  pinoHttp({
+    logger,
+    customLogLevel: function (req, res, err) {
+      if (res.statusCode >= 500 || err) return "error";
+      if (res.statusCode >= 400) return "warn";
+      return "info";
+    },
+  })
+);
 
 app.use('/api', router);
 
