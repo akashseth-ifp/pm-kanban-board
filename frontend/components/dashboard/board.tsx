@@ -34,7 +34,6 @@ export const Board = ({ board }: BoardProps) => {
     mutationFn: (data: UpdateBoardData) => updateBoardAPI(board.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] })
-      toast.success(`Board "${board.title}" updated successfully`)
       setIsEditModalOpen(false)
     },
     onError: (error: any) => {
@@ -47,7 +46,6 @@ export const Board = ({ board }: BoardProps) => {
     mutationFn: () => deleteBoardAPI(board.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] })
-      toast.success(`Board "${board.title}" deleted successfully`)
       setIsDeleteOpen(false)
     },
     onError: (error: any) => {

@@ -28,7 +28,6 @@ export function Navbar() {
   const {mutateAsync: signOut} = useMutation({
     mutationFn: () => signOutAPI(),
     onSuccess: () => {
-      toast.success("Signed out successfully");
       router.replace("/auth");
     },
     onError: (error) => {

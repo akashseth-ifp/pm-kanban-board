@@ -26,7 +26,6 @@ export const YourWorkspace = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] })
-      toast.success("Board created successfully")
       setIsModalOpen(false)
     },
     onError: (error: any) => {
