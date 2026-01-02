@@ -17,8 +17,7 @@ export const auth = betterAuth({
         },
     },
     trustedOrigins: [
-        "http://127.0.0.1:3000",
-        "http://localhost:3000", // In case frontend runs here later
+        process.env.FRONTEND_URL as string // In case frontend runs here later
     ],
     advanced: {
         database: {
