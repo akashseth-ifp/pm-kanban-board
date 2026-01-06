@@ -1,9 +1,8 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, uuid, check } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, check, bigint } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z, object, uuidv7 } from "zod";
 import { user } from "./auth-schema";
-import { uuid7 } from "zod/v4/core/regexes.cjs";
 
 export const ALLOWED_BACKGROUNDS = [
     'gradient1', 'gradient2', 'gradient3', 'gradient4', 'gradient5',
@@ -16,6 +15,7 @@ export const board = pgTable("boards", {
     id: uuid("id").primaryKey().default(sql`uuidv7()` as any),
     title: text("title").notNull(),
     background: text("background").notNull().default('gradient1'),
+    version: bigint("version", { mode: 'number' }).default(0),
     userId: uuid("user_id").notNull().references(() => user.id),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow()
