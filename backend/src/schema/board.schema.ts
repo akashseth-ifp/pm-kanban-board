@@ -15,7 +15,7 @@ export const board = pgTable("boards", {
     id: uuid("id").primaryKey().default(sql`uuidv7()` as any),
     title: text("title").notNull(),
     background: text("background").notNull().default('gradient1'),
-    version: bigint("version", { mode: 'number' }).default(0),
+    version: bigint("version", { mode: 'number' }).default(0).notNull(),
     userId: uuid("user_id").notNull().references(() => user.id),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow()

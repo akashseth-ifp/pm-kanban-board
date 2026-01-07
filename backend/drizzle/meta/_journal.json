@@ -36,6 +36,27 @@
       "when": 1767702828878,
       "tag": "0004_flashy_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1767783534918,
+      "tag": "0005_clammy_emma_frost",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767791023234,
+      "tag": "0006_sour_the_stranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1767821923114,
+      "tag": "0007_smooth_swordsman",
+      "breakpoints": true
     }
   ]
 }
