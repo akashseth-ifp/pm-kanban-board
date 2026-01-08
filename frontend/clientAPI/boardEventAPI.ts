@@ -21,10 +21,16 @@ export const getBoardAPI = async (data: Omit<GetBoardEvent, 'eventType'>): Promi
 };
 
 export const updateBoardAPI = async (data: Omit<UpdateBoardEvent, 'eventType' | 'version'>): Promise<Board> => {
-    return fetchWithAuth(`${API_URL}`, {
+    try{
+        const {newVersion, data: resData} = await fetchWithAuth(`${API_URL}`, {
         method: "POST",
         body: JSON.stringify({ eventType: "UPDATE_BOARD", version: 0, ...data }),
-    });
+        });
+        return resData;
+    }
+    catch(error){
+        throw error;
+    }
 };
 
 export const deleteBoardAPI = async (data: Omit<DeleteBoardEvent, 'eventType'>): Promise<void> => {

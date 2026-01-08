@@ -57,7 +57,10 @@ export const updateBoardEvent = async (eventData: UpdateBoardEvent, userId: stri
             payload
         });
 
-        return updatedBoard;
+        return {
+            newVersion: updatedBoard.version,
+            data: updatedBoard
+        };
     });
 
     return result;
