@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getBoardAPI } from "@/clientAPI/boardEventAPI"
 import { BoardContainer } from "@/components/board/board-container"
 import { BoardHeader } from "@/components/board/board-header"
+import { ListContainer } from "@/components/board/list-container"
 import { useParams } from "next/navigation"
 
 export default function BoardPage() {
@@ -40,9 +41,9 @@ export default function BoardPage() {
 
     return (
         <BoardContainer board={board}>
-            <BoardHeader board={board} />
-            <div className="flex-1 overflow-x-auto p-4">
-               {/* Board lists will go here */}
+            <BoardHeader title={board.title} boardId={board.id} />
+            <div className="h-full overflow-x-auto">
+                <ListContainer />
             </div>
         </BoardContainer>
     )
