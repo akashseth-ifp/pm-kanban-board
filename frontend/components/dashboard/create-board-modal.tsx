@@ -20,19 +20,17 @@ import { gradientBackgrounds } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { IconCheck } from "@tabler/icons-react"
 
-import { CreateBoardData, UpdateBoardData } from "@/clientAPI/boardAPI"
-
 const boardSchema = z.object({
   title: z.string().min(1, "Board Name is required"),
   background: z.string().optional(),
 })
 
-type BoardFormValues = z.infer<typeof boardSchema>
+export type BoardFormValues = z.infer<typeof boardSchema>
 
 interface BoardModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (values: CreateBoardData) => void
+  onSubmit: (values: BoardFormValues) => void
   isSubmitting?: boolean
   initialData?: { title: string; background?: string | null }
 }
@@ -77,7 +75,7 @@ export const BoardModal = ({
   const selectedBackground = watch("background")
 
   const onFormSubmit = (values: BoardFormValues) => {
-    onSubmit(values as CreateBoardData)
+    onSubmit(values)
   }
 
   return (

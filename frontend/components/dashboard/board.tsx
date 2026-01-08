@@ -100,7 +100,13 @@ export const Board = ({ board }: IProps) => {
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         initialData={{ title: board.title, background: board.background }}
-        onSubmit={(values) => updateMutation.mutate(values)}
+        onSubmit={(values) => {
+            const payload: any = { title: values.title };
+            if (values.background) {
+                payload.background = values.background;
+            }
+            updateMutation.mutate(payload);
+        }}
         isSubmitting={updateMutation.isPending}
       />
 
