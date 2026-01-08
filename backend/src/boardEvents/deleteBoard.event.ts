@@ -1,7 +1,5 @@
 import { db } from "../db";
 import { board } from "../schema/board.schema";
-import { boardMember } from "../schema/board-member.schema";
-import { boardEvent } from "../schema/board-events.schema";
 import { z, object, string } from "zod";
 import { eq } from "drizzle-orm";
 

@@ -2,12 +2,13 @@
 
 import * as React from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAllBoardsAPI, createBoardAPI } from "@/clientAPI/boardAPI"
+import { addBoardAPI } from "@/clientAPI/boardEventAPI"
 import { BoardModal } from "./create-board-modal"
 import { Board } from "./board"
 import { IconPlus } from "@tabler/icons-react"
 import { toast } from "sonner"
-import { CreateBoardData } from "@/clientAPI/boardAPI"
+import { AddBoardEvent } from "@backend/boardEvents/addBoard.event"
+import { getAllBoardsAPI } from "@/clientAPI/boardAPI"
 
 export const YourWorkspace = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false)
@@ -21,8 +22,8 @@ export const YourWorkspace = () => {
 
   // 2. Create Board Mutation
   const createMutation = useMutation({
-    mutationFn: (values: CreateBoardData) => {
-        return createBoardAPI(values)
+    mutationFn: (values: AddBoardEvent['payload']) => {
+        return addBoardAPI({payload: values})
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] })

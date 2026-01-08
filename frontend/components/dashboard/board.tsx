@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { updateBoardAPI, deleteBoardAPI, UpdateBoardData } from "@/clientAPI/boardAPI"
+import { updateBoardAPI, deleteBoardAPI } from "@/clientAPI/boardEventAPI"
 import { BoardModal } from "./create-board-modal" // Note: renamed file in later step or rename export
 import { gradientBackgrounds } from "@/lib/utils"
 import { IconExternalLink, IconEdit, IconTrash } from "@tabler/icons-react"
@@ -19,19 +19,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Board as BoardType } from "@backend/schema/board.schema"
+import { UpdateBoardEvent } from "@backend/boardEvents/updateBoard.event"
 
-interface BoardProps {
+interface IProps {
   board: BoardType
 }
 
-export const Board = ({ board }: BoardProps) => {
+export const Board = ({ board }: IProps) => {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
   const queryClient = useQueryClient()
 
   // 1. Update Mutation
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateBoardData) => updateBoardAPI(board.id, data),
+    mutationFn: (data: UpdateBoardEvent['payload']) => updateBoardAPI({payload: data, boardId: board.id}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] })
       setIsEditModalOpen(false)
@@ -43,7 +44,7 @@ export const Board = ({ board }: BoardProps) => {
 
   // 2. Delete Mutation
   const deleteMutation = useMutation({
-    mutationFn: () => deleteBoardAPI(board.id),
+    mutationFn: () => deleteBoardAPI({boardId: board.id}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] })
       setIsDeleteOpen(false)
