@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import auth from "./auth.route";
-import eventRoute from "./event.route";
+import boardEventRoute from "./boardEvent.route";
 import boardRoute from "./board.route";
 
 const router: express.Router = express.Router();
@@ -12,6 +12,6 @@ router.get('/health', (req: Request, res: Response) => {
 
 router.use('/auth', auth);
 router.use('/boards', boardRoute);
-router.use('/event', eventRoute);
+router.use('/event', boardEventRoute);
 
 export default router;

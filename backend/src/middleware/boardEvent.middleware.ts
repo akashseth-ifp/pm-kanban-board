@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
 import { validateResource } from './validateResource.middleware';
 import { authorizeResource } from './authorize.middleware';
-import { AddBoardEventSchema } from '../events/addBoard.event';
-import { UpdateBoardEventSchema } from '../events/updateBoard.event';
-import { DeleteBoardEventSchema } from '../events/deleteBoard.event';
+import { AddBoardEventSchema } from '../boardEvents/addBoard.event';
+import { UpdateBoardEventSchema } from '../boardEvents/updateBoard.event';
+import { DeleteBoardEventSchema } from '../boardEvents/deleteBoard.event';
 
-export const eventMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const boardEventMiddleware = (req: Request, res: Response, next: NextFunction) => {
     try {
         const { eventType } = req.body;
 

@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { addBoardEvent } from "../events/addBoard.event";
-import { updateBoardEvent } from "../events/updateBoard.event";
-import { deleteBoardEvent } from "../events/deleteBoard.event";
+import { addBoardEvent } from "../boardEvents/addBoard.event";
+import { updateBoardEvent } from "../boardEvents/updateBoard.event";
+import { deleteBoardEvent } from "../boardEvents/deleteBoard.event";
 import { db } from "../db";
 import { boardEvent } from "../schema/board-events.schema";
 import { eq } from "drizzle-orm";
 
-export const eventPostHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const boardEventPostHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { eventType } = req.body;
         const userId = req.user!.id;
@@ -33,7 +33,7 @@ export const eventPostHandler = async (req: Request, res: Response, next: NextFu
     }
 };
 
-export const eventGetHandler = async (req: Request, res: Response): Promise<void> => {
+export const boardEventGetHandler = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.user!.id;
         const { boardId } = req.params;
