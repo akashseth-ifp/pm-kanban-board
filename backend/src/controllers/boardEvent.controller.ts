@@ -3,6 +3,9 @@ import { addBoardEvent } from "../boardEvents/addBoard.event";
 import { updateBoardEvent } from "../boardEvents/updateBoard.event";
 import { deleteBoardEvent } from "../boardEvents/deleteBoard.event";
 import { getBoardEvent } from "../boardEvents/getBoard.event";
+import { addListEvent } from "../boardEvents/addList.event";
+import { updateListEvent } from "../boardEvents/updateList.event";
+import { deleteListEvent } from "../boardEvents/deleteList.event";
 
 export const boardEventPostHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -21,7 +24,13 @@ export const boardEventPostHandler = async (req: Request, res: Response, next: N
             result = await deleteBoardEvent(req.body, userId);
         }else if (eventType === 'GET_BOARD') {
             result = await getBoardEvent(req.body, userId);
-        } else {
+        } else if (eventType === 'ADD_LIST') {
+            result = await addListEvent(req.body, userId);
+        }else if (eventType === 'UPDATE_LIST') {
+            result = await updateListEvent(req.body, userId);
+        }else if (eventType === 'DELETE_LIST') {
+            result = await deleteListEvent(req.body, userId);
+        }else {
             res.status(400).json({ message: "Event not found: " + eventType });
             return;
         }

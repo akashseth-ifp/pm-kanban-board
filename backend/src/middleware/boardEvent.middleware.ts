@@ -5,6 +5,9 @@ import { AddBoardEventSchema } from '../boardEvents/addBoard.event';
 import { UpdateBoardEventSchema } from '../boardEvents/updateBoard.event';
 import { DeleteBoardEventSchema } from '../boardEvents/deleteBoard.event';
 import { GetBoardEventSchema } from '../boardEvents/getBoard.event';
+import { AddListEventSchema } from '../boardEvents/addList.event';
+import { UpdateListEventSchema } from '../boardEvents/updateList.event';
+import { DeleteListEventSchema } from '../boardEvents/deleteList.event';
 
 export const boardEventMiddleware = (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -32,6 +35,27 @@ export const boardEventMiddleware = (req: Request, res: Response, next: NextFunc
             return validateResource(GetBoardEventSchema)(req, res, (validationErr) => {
                 if (validationErr) return next(validationErr);
                 return authorizeResource('Viewer')(req, res, next);
+            });
+        }
+        
+        if (eventType === 'ADD_LIST') {
+            return validateResource(AddListEventSchema)(req, res, (validationErr) => {
+                if (validationErr) return next(validationErr);
+                return authorizeResource('Member')(req, res, next);
+            });
+        }
+        
+        if (eventType === 'UPDATE_LIST') {
+            return validateResource(UpdateListEventSchema)(req, res, (validationErr) => {
+                if (validationErr) return next(validationErr);
+                return authorizeResource('Member')(req, res, next);
+            });
+        }
+        
+        if (eventType === 'DELETE_LIST') {
+            return validateResource(DeleteListEventSchema)(req, res, (validationErr) => {
+                if (validationErr) return next(validationErr);
+                return authorizeResource('Member')(req, res, next);
             });
         }
         
