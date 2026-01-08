@@ -4,6 +4,7 @@ import { authorizeResource } from './authorize.middleware';
 import { AddBoardEventSchema } from '../boardEvents/addBoard.event';
 import { UpdateBoardEventSchema } from '../boardEvents/updateBoard.event';
 import { DeleteBoardEventSchema } from '../boardEvents/deleteBoard.event';
+import { GetBoardEventSchema } from '../boardEvents/getBoard.event';
 
 export const boardEventMiddleware = (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -24,6 +25,13 @@ export const boardEventMiddleware = (req: Request, res: Response, next: NextFunc
             return validateResource(DeleteBoardEventSchema)(req, res, (validationErr) => {
                 if (validationErr) return next(validationErr);
                 return authorizeResource('Admin')(req, res, next);
+            });
+        }
+
+        if (eventType === 'GET_BOARD') {
+            return validateResource(GetBoardEventSchema)(req, res, (validationErr) => {
+                if (validationErr) return next(validationErr);
+                return authorizeResource('Viewer')(req, res, next);
             });
         }
         

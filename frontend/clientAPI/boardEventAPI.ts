@@ -4,6 +4,7 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/event`;
 import { AddBoardEvent } from "@backend/boardEvents/addBoard.event";
 import { UpdateBoardEvent } from "@backend/boardEvents/updateBoard.event";
 import { DeleteBoardEvent } from "@backend/boardEvents/deleteBoard.event";
+import { GetBoardEvent } from "@backend/boardEvents/getBoard.event";
 
 export const addBoardAPI = async (data: Omit<AddBoardEvent, 'eventType'>): Promise<Board> => {
     return fetchWithAuth(`${API_URL}`, {
@@ -12,12 +13,12 @@ export const addBoardAPI = async (data: Omit<AddBoardEvent, 'eventType'>): Promi
     });
 };
 
-// export const getBoardAPI = async (data: Omit<GetBoardEvent, 'eventType'>): Promise<Board> => {
-//     return fetchWithAuth(`${API_URL}`, {
-//         method: "POST",
-//         body: JSON.stringify({ eventType: "GET_BOARD", ...data }),
-//     });
-// };
+export const getBoardAPI = async (data: Omit<GetBoardEvent, 'eventType'>): Promise<Board> => {
+    return fetchWithAuth(`${API_URL}`, {
+        method: "POST",
+        body: JSON.stringify({ eventType: "GET_BOARD", ...data }),
+    });
+};
 
 export const updateBoardAPI = async (data: Omit<UpdateBoardEvent, 'eventType' | 'version'>): Promise<Board> => {
     return fetchWithAuth(`${API_URL}`, {

@@ -2,9 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { addBoardEvent } from "../boardEvents/addBoard.event";
 import { updateBoardEvent } from "../boardEvents/updateBoard.event";
 import { deleteBoardEvent } from "../boardEvents/deleteBoard.event";
-import { db } from "../db";
-import { boardEvent } from "../schema/board-events.schema";
-import { eq } from "drizzle-orm";
+import { getBoardEvent } from "../boardEvents/getBoard.event";
 
 export const boardEventPostHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -21,6 +19,8 @@ export const boardEventPostHandler = async (req: Request, res: Response, next: N
             result = await updateBoardEvent(req.body, userId);
         }else if (eventType === 'DELETE_BOARD') {
             result = await deleteBoardEvent(req.body, userId);
+        }else if (eventType === 'GET_BOARD') {
+            result = await getBoardEvent(req.body, userId);
         } else {
             res.status(400).json({ message: "Event not found: " + eventType });
             return;
@@ -29,25 +29,6 @@ export const boardEventPostHandler = async (req: Request, res: Response, next: N
         res.status(200).json(result);
     } catch (error) {
         req.log.error(`Event Post Handler Error: ${error}`);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-};
-
-export const boardEventGetHandler = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const userId = req.user!.id;
-        const { boardId } = req.params;
-
-        // Get all events for a specific board
-        const events = await db
-            .select()
-            .from(boardEvent)
-            .where(eq(boardEvent.boardId, boardId))
-            .orderBy(boardEvent.createdAt);
-
-        res.json(events);
-    } catch (error) {
-        req.log.error(`Event Get Handler Error: ${error}`);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
