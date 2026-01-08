@@ -7,7 +7,7 @@ import { BoardModal } from "./create-board-modal" // Note: renamed file in later
 import { gradientBackgrounds } from "@/lib/utils"
 import { IconExternalLink, IconEdit, IconTrash } from "@tabler/icons-react"
 import { toast } from "sonner"
-import Link from "next/link"
+import {Link} from "next-view-transitions"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
 import { Board as BoardType } from "@backend/schema/board.schema"
 import { UpdateBoardEvent } from "@backend/boardEvents/updateBoard.event"
 
@@ -63,32 +64,35 @@ export const Board = ({ board }: IProps) => {
             <span className="sr-only">Open {board.title}</span>
         </Link>
 
-        <div className="relative z-10 flex items-start justify-between">
-          <h3 className="font-semibold text-white truncate drop-shadow-sm">{board.title}</h3>
+        <div className="relative z-10 flex items-start justify-between pointer-events-none">
+          <h3 className="font-semibold text-white truncate">{board.title}</h3>
           <IconExternalLink className="size-4 text-white/70 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
         
         <div className="relative z-10 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
-          <button 
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-8 w-8 bg-white/10 backdrop-blur-md hover:bg-white/90 hover:text-black border border-white/20"
             onClick={(e) => {
-                e.preventDefault();
-                setIsEditModalOpen(true);
+              e.preventDefault();
+              setIsEditModalOpen(true);
             }}
-            className="rounded-md bg-white/10 p-2 backdrop-blur-md hover:bg-white/90 hover:text-black transition-all hover:scale-110 active:scale-95 shadow-sm border border-white/20"
-            title="Edit Board"
           >
             <IconEdit className="size-4" />
-          </button>
-          <button 
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-8 w-8 bg-white/10 backdrop-blur-md hover:bg-white/90 hover:text-destructive border border-white/20"
             onClick={(e) => {
-                e.preventDefault();
-                setIsDeleteOpen(true);
+              e.preventDefault();
+              setIsDeleteOpen(true);
             }}
-            className="rounded-md bg-white/10 p-2 backdrop-blur-md hover:bg-destructive hover:text-destructive-foreground transition-all hover:scale-110 active:scale-95 shadow-sm border border-white/20"
-            title="Delete Board"
           >
             <IconTrash className="size-4" />
-          </button>
+          </Button>
         </div>
       </div>
 
