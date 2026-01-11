@@ -6,6 +6,8 @@ import router from './routes';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import logger from './lib/logger';
+import { initSocket } from './socket';
+
 console.log("Current Environment:", process.env.NODE_ENV);
 console.log("Current Port:", process.env.PORT);
 
@@ -37,8 +39,10 @@ app.use(
 app.use('/api', router);
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
+
+initSocket(server);
 
 export default app;
