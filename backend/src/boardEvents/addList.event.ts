@@ -30,7 +30,10 @@ export type AddListEventResponse = Omit<AddListEvent, "payload"> & {
   entityType: string;
 };
 
-export const addListEvent = async (eventData: AddListEvent, userId: string) => {
+export const addListEvent = async (
+  eventData: AddListEvent,
+  userId: string
+): Promise<AddListEventResponse> => {
   const {
     eventType,
     boardId,

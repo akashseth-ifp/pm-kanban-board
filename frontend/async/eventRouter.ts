@@ -24,6 +24,6 @@ export function applyServerEvent(event: Event) {
       break;
 
     default:
-      console.warn("Unknown event type", event.eventType);
+      console.warn("Unknown event type", event);
   }
 }

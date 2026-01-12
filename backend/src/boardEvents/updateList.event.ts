@@ -35,7 +35,7 @@ export type UpdateListEventResponse = UpdateListEvent & {
 export const updateListEvent = async (
   eventData: UpdateListEvent,
   userId: string
-) => {
+): Promise<UpdateListEventResponse> => {
   const {
     eventType,
     boardId,
@@ -74,10 +74,7 @@ export const updateListEvent = async (
     // 3. Log the event to board_events table
     await tx.insert(boardEvent).values(eventResponse);
 
-    return {
-      newVersion: boardVersionInfo.newBoardVersion,
-      data: eventResponse,
-    };
+    return eventResponse;
   });
 
   return result;

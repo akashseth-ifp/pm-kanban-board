@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, ElementRef, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   IconDots,
@@ -40,11 +40,10 @@ type FormData = z.infer<typeof formSchema>;
 
 export const BoardList = ({ listId, index }: BoardListProps) => {
   const params = useParams();
-  const queryClient = useQueryClient();
   const list = useBoardDataStore((state) => state.listsById[listId]);
 
   const [isEditing, setIsEditing] = useState(false);
-  const formRef = useRef<ElementRef<"form">>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const {
     register,
@@ -72,17 +71,16 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
   };
 
   // Update List Mutation
-  const { mutate: updateList } = useMutation({
+  const { mutate: updateList, isPending: isUpdating } = useMutation({
     mutationFn: (newTitle: string) =>
       updateListAPI({
         boardId: params.id as string,
         payload: { id: list.id, title: newTitle },
       }),
     onSuccess: (newData) => {
-      toast.success(`Renamed to "${newData.title}"`);
-      reset({ title: newData.title });
+      // toast.success(`Renamed to "${newData.payload.title}"`);
+      reset({ title: newData.payload.title });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["lists", params.id] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to update list");
@@ -99,7 +97,6 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
       }),
     onSuccess: () => {
       toast.success("List deleted");
-      queryClient.invalidateQueries({ queryKey: ["lists", params.id] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to delete list");
@@ -141,7 +138,12 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
                 placeholder="Enter list title..."
               />
               <div className="flex items-center gap-x-1">
-                <Button type="submit" size="sm" variant="default">
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="default"
+                  loading={isUpdating}
+                >
                   Update List
                 </Button>
                 <Button
