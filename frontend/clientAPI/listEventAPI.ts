@@ -8,7 +8,10 @@ import {
   UpdateListEvent,
   UpdateListEventResponse,
 } from "@backend/boardEvents/updateList.event";
-import { DeleteListEvent } from "@backend/boardEvents/deleteList.event";
+import {
+  DeleteListEvent,
+  DeleteListEventResponse,
+} from "@backend/boardEvents/deleteList.event";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/event`;
 
@@ -42,11 +45,16 @@ export const updateListAPI = async (
 
 export const deleteListAPI = async (
   data: Omit<DeleteListEvent, "eventType">
-): Promise<void> => {
-  return fetchWithAuth(`${API_URL}`, {
-    method: "POST",
-    body: JSON.stringify({ eventType: "DELETE_LIST", ...data }),
-  });
+): Promise<DeleteListEventResponse> => {
+  try {
+    const resData = await fetchWithAuth(`${API_URL}`, {
+      method: "POST",
+      body: JSON.stringify({ eventType: "DELETE_LIST", ...data }),
+    });
+    return resData;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const getListsAPI = async (boardId: string): Promise<List[]> => {

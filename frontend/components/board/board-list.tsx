@@ -41,6 +41,7 @@ type FormData = z.infer<typeof formSchema>;
 export const BoardList = ({ listId, index }: BoardListProps) => {
   const params = useParams();
   const list = useBoardDataStore((state) => state.listsById[listId]);
+  if (!list) return null;
 
   const [isEditing, setIsEditing] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -93,7 +94,7 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
     mutationFn: () =>
       deleteListAPI({
         boardId: params.id as string,
-        payload: { listId: list.id },
+        payload: { id: list.id },
       }),
     onSuccess: () => {
       toast.success("List deleted");

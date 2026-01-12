@@ -95,7 +95,10 @@ const useBoardOrderStore = create<BoardOrderState & BoardOrderActions>()(
       deleteList: (listId) =>
         set((s) => {
           const { [listId]: _, ...rest } = s.ticketOrderByList;
-          return { ticketOrderByList: rest };
+          return {
+            listOrder: s.listOrder.filter((l) => l.id !== listId),
+            ticketOrderByList: rest,
+          };
         }),
 
       addTicket: (ticket, listId: string) =>
