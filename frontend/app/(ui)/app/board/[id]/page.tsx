@@ -25,12 +25,13 @@ export default function BoardPage() {
 
   useEffect(() => {
     function onConnect() {
+      console.log("Socket connected, joining board:", boardId);
       setIsConnected(true);
-      // CRITICAL: Re-join the room if the connection dropped and came back
       socket.emit("join-board", boardId);
     }
 
     function onDisconnect() {
+      console.log("Socket disconnected");
       setIsConnected(false);
     }
 
@@ -48,7 +49,7 @@ export default function BoardPage() {
       socket.off("disconnect", onDisconnect);
       socket.off("boardEvent", applyServerEvent);
     };
-  }, [boardId]); // Re-run if the user switches to a different board
+  }, [boardId]); // Re-run if the boardId changes
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["board", boardId],
