@@ -10,6 +10,8 @@ export const initSocket = (httpServer: HttpServer): SocketIOServer => {
       origin: process.env.FRONTEND_URL,
       methods: ["GET", "POST"],
     },
+    pingInterval: 10000,
+    pingTimeout: 5000,
   });
 
   io.on("connection", (socket: Socket) => {

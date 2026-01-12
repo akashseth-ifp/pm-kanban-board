@@ -8,9 +8,11 @@ import { ListContainer } from "@/components/board/list-container";
 import { applyServerEvent } from "@/async/eventRouter";
 import { socket } from "@/async/socket";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import useBoardDataStore from "@/store/boardData.store";
 import useBoardOrderStore from "@/store/boardOrder.store";
+import { toast } from "sonner";
+import { useIsOnline } from "@/hooks/useIsOnline";
 
 export default function BoardPage() {
   const params = useParams();
@@ -20,7 +22,9 @@ export default function BoardPage() {
   const setBoardOrder = useBoardOrderStore((state) => state.setBoardOrder);
   const listOrder = useBoardOrderStore((state) => state.listOrder);
 
-  const [isConnected, setIsConnected] = useState(socket.connected);
+  const isOnline = useIsOnline();
+  const [isConnected, setIsConnected] = useState(socket.connected && isOnline);
+  const isInitialConnection = useRef(true);
 
   useEffect(() => {
     // manually connect the socket
@@ -67,6 +71,25 @@ export default function BoardPage() {
       setBoardOrder({ lists, tickets });
     }
   }, [data]);
+
+  // Sync state with hook and socket
+  useEffect(() => {
+    setIsConnected(socket.connected && isOnline);
+  }, [isOnline]);
+
+  useEffect(() => {
+    if (isConnected) {
+      if (!isInitialConnection.current) {
+        toast.success("Connected to board");
+      }
+      isInitialConnection.current = false;
+    } else {
+      // Only toast error if we've already had an initial connection
+      if (!isInitialConnection.current) {
+        toast.error("Disconnected from board");
+      }
+    }
+  }, [isConnected]);
 
   if (isLoading) {
     return (
