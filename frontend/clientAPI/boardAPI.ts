@@ -15,3 +15,8 @@ export const createBoardAPI = async (title: string): Promise<Board> => {
     }),
   });
 };
+
+// Fetch single board with table row
+export const getBoardAPI = async (boardId: string): Promise<Board> => {
+  return fetchWithAuth(`${API_URL}/${boardId}`);
+};
