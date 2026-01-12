@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { IconArrowLeft } from "@tabler/icons-react";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 
 interface BoardHeaderProps {
   title: string;
