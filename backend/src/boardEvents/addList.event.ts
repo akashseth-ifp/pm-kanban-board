@@ -1,10 +1,9 @@
 import { db } from "../db";
 import { boardEvent } from "../schema/board-events.schema";
 import { z, object, string, uuid, number } from "zod";
-import { list } from "../schema/list.schema";
+import { List, list } from "../schema/list.schema";
 import { board } from "../schema/board.schema";
 import { eq, sql } from "drizzle-orm";
-import { getIO } from "../lib/socket";
 
 export const AddListEventSchema = object({
   body: object({
@@ -23,6 +22,13 @@ export const AddListEventSchema = object({
 });
 
 export type AddListEvent = z.infer<typeof AddListEventSchema>["body"];
+
+export type AddListEventResponse = Omit<AddListEvent, "payload"> & {
+  payload: List;
+  userId: string;
+  version: number;
+  entityType: string;
+};
 
 export const addListEvent = async (eventData: AddListEvent, userId: string) => {
   const {
@@ -52,30 +58,19 @@ export const addListEvent = async (eventData: AddListEvent, userId: string) => {
       .where(eq(board.id, boardId))
       .returning({ newBoardVersion: board.version });
 
-    // 3. Log the event to board_events table
-    await tx.insert(boardEvent).values({
+    const eventResponse = {
       boardId,
       userId,
       version: boardVersionInfo.newBoardVersion,
       eventType,
       entityType: "List",
-      payload: eventData.payload,
-    });
-
-    return {
-      newVersion: boardVersionInfo.newBoardVersion,
-      data: newList,
+      payload: newList,
     };
+    // 3. Log the event to board_events table
+    await tx.insert(boardEvent).values(eventResponse);
+
+    return eventResponse;
   });
 
-  // Emit the event to the board room
-  const io = getIO();
-  io.to(boardId).emit("boardEvent", {
-    eventType,
-    boardId,
-    version: result.newVersion,
-    payload: result.data,
-  });
-
-  return { success: true };
+  return result;
 };

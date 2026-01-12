@@ -2,9 +2,13 @@ import { Request, Response, NextFunction } from "express";
 import { updateBoardEvent } from "../boardEvents/updateBoard.event";
 import { deleteBoardEvent } from "../boardEvents/deleteBoard.event";
 import { getBoardEvent } from "../boardEvents/getBoard.event";
-import { addListEvent } from "../boardEvents/addList.event";
+import {
+  addListEvent,
+  AddListEventResponse,
+} from "../boardEvents/addList.event";
 import { updateListEvent } from "../boardEvents/updateList.event";
 import { deleteListEvent } from "../boardEvents/deleteList.event";
+import { getIO } from "../lib/socket";
 
 export const boardEventPostHandler = async (
   req: Request,
@@ -12,7 +16,7 @@ export const boardEventPostHandler = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { eventType } = req.body;
+    const { eventType, boardId } = req.body;
     const userId = req.user!.id;
 
     req.log.info(`Event Type: ${eventType}`);
@@ -38,6 +42,10 @@ export const boardEventPostHandler = async (
       res.status(400).json({ message: "Event not found: " + eventType });
       return;
     }
+
+    // Emit the event to the board room
+    const io = getIO();
+    io.to(boardId).emit("boardEvent", result);
 
     res.status(200).json(result);
   } catch (error) {

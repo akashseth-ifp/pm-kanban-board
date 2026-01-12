@@ -20,7 +20,6 @@ export default function BoardPage() {
   const setBoard = useBoardDataStore((state) => state.setBoard);
   const board = useBoardDataStore((state) => state.boardData);
   const setBoardOrder = useBoardOrderStore((state) => state.setBoardOrder);
-  const listOrder = useBoardOrderStore((state) => state.listOrder);
 
   const isOnline = useIsOnline();
   const [isConnected, setIsConnected] = useState(socket.connected && isOnline);

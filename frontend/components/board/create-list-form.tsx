@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { useParams } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
@@ -14,7 +14,6 @@ import { addListAPI } from "@/clientAPI/listEventAPI";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getAddListPosition } from "@/utils/board-position";
-import useBoardOrderStore from "@/store/boardOrder.store";
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long"),
@@ -24,9 +23,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export const CreateListForm = () => {
   const params = useParams();
-  const queryClient = useQueryClient();
   const formRef = useRef<HTMLFormElement>(null);
-  const addList = useBoardOrderStore((state) => state.addList);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -62,13 +59,7 @@ export const CreateListForm = () => {
         payload: { title: values.title, position: getAddListPosition() },
       }),
     onSuccess: () => {
-      toast.success("List created");
       disableEditing();
-      queryClient.invalidateQueries({ queryKey: ["lists", params.id] });
-      // addList({
-      //   id: "",
-      //   position: getAddListPosition(),
-      // });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to create list");

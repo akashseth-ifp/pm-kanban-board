@@ -18,7 +18,7 @@ type BoardOrderActions = {
   setBoardOrder(payload: { lists: List[]; tickets: Ticket[] }): void;
 
   /* Lists */
-  addList(list: List): void; // Add list to the listOrder
+  addList(data: BaseValue): void; // Add list to the listOrder
   updateListPosition(
     listId: string,
     fromIndex: number,
@@ -63,12 +63,12 @@ const useBoardOrderStore = create<BoardOrderState & BoardOrderActions>()(
           ),
         }),
 
-      addList: (list) =>
+      addList: (data) =>
         set((s) => ({
-          listOrder: [...s.listOrder, { id: list.id, position: list.position }],
+          listOrder: [...s.listOrder, { id: data.id, position: data.position }],
           ticketOrderByList: {
             ...s.ticketOrderByList,
-            [list.id]: [],
+            [data.id]: [],
           },
         })),
 
