@@ -94,12 +94,7 @@ export const CreateListForm = () => {
           disabled={isPending}
         />
         <div className="mt-3 flex items-center gap-x-1">
-          <Button
-            type="submit"
-            disabled={isPending}
-            size="sm"
-            variant="default"
-          >
+          <Button type="submit" loading={isPending} size="sm" variant="default">
             Add List
           </Button>
           <Button
