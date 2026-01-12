@@ -76,7 +76,7 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
     mutationFn: (newTitle: string) =>
       updateListAPI({
         boardId: params.id as string,
-        payload: { listId: list.id, title: newTitle },
+        payload: { id: list.id, title: newTitle },
       }),
     onSuccess: (newData) => {
       toast.success(`Renamed to "${newData.title}"`);
