@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import { db } from "../db";
 import { board } from "../schema/board.schema";
 import { boardMember } from "../schema/board-member.schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
+import { list } from "../schema";
 
 export const createBoardHandler = async (
   req: Request,
@@ -61,8 +62,28 @@ export const getBoardHandler = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  // Middleware handles 404 and 403, and attaches board to req.board
-  // res.json(req.board);
+  const { boardId } = req.params;
+  const [foundBoard] = await db
+    .select()
+    .from(board)
+    .where(eq(board.id, boardId));
+
+  if (!foundBoard) {
+    throw new Error("Board not found");
+  }
+
+  // fectch all the list for the board sorted by position
+  const foundLists = await db
+    .select()
+    .from(list)
+    .where(eq(list.boardId, boardId))
+    .orderBy(asc(list.position));
+
+  res.json({
+    board: foundBoard,
+    lists: foundLists,
+    tickets: [],
+  });
 };
 
 export const updateBoardHandler = async (

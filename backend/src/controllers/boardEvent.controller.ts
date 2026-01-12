@@ -45,3 +45,33 @@ export const boardEventPostHandler = async (
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const boardEventGetHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { eventType } = req.body;
+    const userId = req.user!.id;
+
+    req.log.info(`Event Type: ${eventType}`);
+    req.log.info(
+      `Event Data: ${JSON.stringify({ userId, ...req.body }, null, 2)}`
+    );
+
+    let result;
+
+    if (eventType === "GET_BOARD") {
+      result = await getBoardEvent(req.body, userId);
+    } else {
+      res.status(400).json({ message: "Event not found: " + eventType });
+      return;
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    req.log.error(`Event Get Handler Error: ${error}`);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
