@@ -6,7 +6,7 @@ import router from "./routes";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
 import logger from "./lib/logger";
-import { initSocket } from "./socket";
+import { initSocket } from "./lib/socket";
 
 console.log("Current Environment:", process.env.NODE_ENV);
 console.log("Current Port:", process.env.PORT);

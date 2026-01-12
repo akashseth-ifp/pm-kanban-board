@@ -4,7 +4,7 @@ import { z, object, string, uuid, number } from "zod";
 import { list } from "../schema/list.schema";
 import { board } from "../schema/board.schema";
 import { eq, sql } from "drizzle-orm";
-import { getIO } from "../socket";
+import { getIO } from "../lib/socket";
 
 export const AddListEventSchema = object({
   body: object({
