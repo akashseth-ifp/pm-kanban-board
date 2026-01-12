@@ -41,10 +41,10 @@ app.use(
     }),
     // Use a clean one-line message for request success/failure
     customSuccessMessage: function (req, res, responseTime) {
-      return `${req.method} ${req.url} ${res.statusCode} - ${responseTime}ms`;
+      return `${req.method} ${req.originalUrl} ${res.statusCode} - ${responseTime}ms`;
     },
     customErrorMessage: function (req, res, err) {
-      return `${req.method} ${req.url} ${res.statusCode} - ${err.message}`;
+      return `${req.method} ${req.originalUrl} ${res.statusCode} - ${err.message}`;
     },
     customLogLevel: function (req, res, err) {
       if (res.statusCode >= 500 || err) return "error";
