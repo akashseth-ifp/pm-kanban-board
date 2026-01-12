@@ -47,10 +47,7 @@ export const CreateListForm = () => {
     });
   };
 
-  const disableEditing = () => {
-    setIsEditing(false);
-    reset();
-  };
+  const disableEditing = () => {};
 
   const { mutate, isPending } = useMutation({
     mutationFn: (values: FormData) =>
@@ -58,11 +55,15 @@ export const CreateListForm = () => {
         boardId: params.id as string,
         payload: { title: values.title, position: getAddListPosition() },
       }),
-    onSuccess: () => {
-      disableEditing();
+    onMutate: () => {
+      setIsEditing(false);
+      reset();
     },
-    onError: (error: any) => {
+    onError: (error: any, variables) => {
       toast.error(error.message || "Failed to create list");
+      // Optionally re-open the form on error
+      setIsEditing(true);
+      reset({ title: variables.title });
     },
   });
 

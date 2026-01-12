@@ -64,13 +64,19 @@ const useBoardOrderStore = create<BoardOrderState & BoardOrderActions>()(
         }),
 
       addList: (data) =>
-        set((s) => ({
-          listOrder: [...s.listOrder, { id: data.id, position: data.position }],
-          ticketOrderByList: {
-            ...s.ticketOrderByList,
-            [data.id]: [],
-          },
-        })),
+        set((s) => {
+          if (s.listOrder.some((l) => l.id === data.id)) return s;
+          return {
+            listOrder: [
+              ...s.listOrder,
+              { id: data.id, position: data.position },
+            ],
+            ticketOrderByList: {
+              ...s.ticketOrderByList,
+              [data.id]: [],
+            },
+          };
+        }),
 
       // update the position of the list in the listOrder
       updateListPosition: (listId, fromIndex, toIndex, newPosition) =>
@@ -93,15 +99,19 @@ const useBoardOrderStore = create<BoardOrderState & BoardOrderActions>()(
         }),
 
       addTicket: (ticket, listId: string) =>
-        set((s) => ({
-          ticketOrderByList: {
-            ...s.ticketOrderByList,
-            [listId]: [
-              ...(s.ticketOrderByList[listId] || []),
-              { id: ticket.id, position: ticket.position },
-            ],
-          },
-        })),
+        set((s) => {
+          const listTickets = s.ticketOrderByList[listId] || [];
+          if (listTickets.some((t) => t.id === ticket.id)) return s;
+          return {
+            ticketOrderByList: {
+              ...s.ticketOrderByList,
+              [listId]: [
+                ...listTickets,
+                { id: ticket.id, position: ticket.position },
+              ],
+            },
+          };
+        }),
 
       updateTicketPosition: (
         fromListId,

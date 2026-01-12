@@ -58,9 +58,12 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
         }),
 
       addList: (list) =>
-        set((s) => ({
-          listsById: { ...s.listsById, [list.id]: list },
-        })),
+        set((s) => {
+          if (s.listsById[list.id]) return s;
+          return {
+            listsById: { ...s.listsById, [list.id]: list },
+          };
+        }),
 
       updateList: (id, patch) =>
         set((s) => ({
@@ -77,9 +80,12 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
         }),
 
       addCard: (card) =>
-        set((s) => ({
-          ticketsById: { ...s.ticketsById, [card.id]: card },
-        })),
+        set((s) => {
+          if (s.ticketsById[card.id]) return s;
+          return {
+            ticketsById: { ...s.ticketsById, [card.id]: card },
+          };
+        }),
 
       updateCard: (id, patch) =>
         set((s) => ({
