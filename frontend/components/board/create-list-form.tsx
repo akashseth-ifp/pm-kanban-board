@@ -1,45 +1,74 @@
 "use client";
 
-import { useState, useRef, ElementRef } from "react";
+import { useState, useRef } from "react";
 import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { useParams } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { IconPlus, IconX } from "@tabler/icons-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import { addListAPI } from "@/clientAPI/listEventAPI";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getAddListPosition } from "@/utils/board-position";
+import useBoardOrderStore from "@/store/boardOrder.store";
+
+const formSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters long"),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export const CreateListForm = () => {
   const params = useParams();
   const queryClient = useQueryClient();
-  const formRef = useRef<ElementRef<"form">>(null);
-  const inputRef = useRef<ElementRef<"input">>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const addList = useBoardOrderStore((state) => state.addList);
 
   const [isEditing, setIsEditing] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setFocus,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+    },
+  });
 
   const enableEditing = () => {
     setIsEditing(true);
     setTimeout(() => {
-      inputRef.current?.focus();
+      setFocus("title");
     });
   };
 
   const disableEditing = () => {
     setIsEditing(false);
+    reset();
   };
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (title: string) =>
+    mutationFn: (values: FormData) =>
       addListAPI({
         boardId: params.id as string,
-        payload: { title, position: 0 }, // Position will be handled by backend or logic
+        payload: { title: values.title, position: getAddListPosition() },
       }),
     onSuccess: () => {
       toast.success("List created");
       disableEditing();
       queryClient.invalidateQueries({ queryKey: ["lists", params.id] });
+      // addList({
+      //   id: "",
+      //   position: getAddListPosition(),
+      // });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to create list");
@@ -56,29 +85,22 @@ export const CreateListForm = () => {
   useOnClickOutside(formRef as React.RefObject<HTMLElement>, disableEditing);
 
   const onSubmit = (formData: FormData) => {
-    const title = formData.get("title") as string;
-
-    if (!title) {
-      disableEditing();
-      return;
-    }
-
-    mutate(title);
+    mutate(formData);
   };
 
   if (isEditing) {
     return (
       <form
-        action={onSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         ref={formRef}
         className="w-full rounded-md bg-white dark:bg-popover dark:text-popover-foreground p-3 shadow-md transition-[height]"
       >
         <Input
-          ref={inputRef}
           id="title"
-          name="title"
+          {...register("title")}
           className="h-10 w-full border border-input focus-visible:ring-1 focus-visible:ring-ring text-sm font-medium text-foreground bg-background px-3 py-1 placeholder:text-muted-foreground"
           placeholder="Enter list title..."
+          disabled={isPending}
         />
         <div className="mt-3 flex items-center gap-x-1">
           <Button
@@ -90,6 +112,7 @@ export const CreateListForm = () => {
             Add List
           </Button>
           <Button
+            type="button"
             onClick={disableEditing}
             size="sm"
             variant="ghost"
