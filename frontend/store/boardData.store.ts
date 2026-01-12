@@ -12,7 +12,7 @@ type BoardDataState = {
 
 type BoardDataActions = {
   reset(): void;
-
+  setVersion(version: number): void;
   setBoard(payload: { board: Board; lists: List[]; tickets: Ticket[] }): void;
 
   /* Lists */
@@ -41,6 +41,11 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
           boardData: null,
           listsById: {},
           ticketsById: {},
+        }),
+
+      setVersion: (version) =>
+        set({
+          boardVersion: version,
         }),
 
       setBoard: ({ board, lists, tickets }) =>

@@ -10,6 +10,7 @@ export function applyServerEvent(event: Event) {
   switch (event.eventType) {
     case "ADD_LIST":
       console.log("ADD_LIST payload:", event.payload);
+      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().addList(event.payload);
       useBoardOrderStore.getState().addList({
         id: event.payload.id,
@@ -18,6 +19,7 @@ export function applyServerEvent(event: Event) {
       break;
     case "UPDATE_LIST":
       console.log("UPDATE_LIST payload:", event.payload);
+      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().updateList(event.payload.id, event.payload);
       break;
 
