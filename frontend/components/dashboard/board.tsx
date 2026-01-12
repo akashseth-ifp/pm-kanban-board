@@ -3,8 +3,7 @@
 import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateBoardAPI, deleteBoardAPI } from "@/clientAPI/boardEventAPI";
-import { BoardModal } from "./create-board-modal"; // Note: renamed file in later step or rename export
-import { gradientBackgrounds } from "@/lib/utils";
+import { BoardModal } from "./create-board-modal";
 import { IconExternalLink, IconEdit, IconTrash } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Link } from "next-view-transitions";

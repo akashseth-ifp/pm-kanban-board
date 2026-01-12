@@ -16,9 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { gradientBackgrounds } from "@/lib/utils";
-import { cn } from "@/lib/utils";
-import { IconCheck } from "@tabler/icons-react";
 
 const boardSchema = z.object({
   title: z.string().min(1, "Board Name is required"),

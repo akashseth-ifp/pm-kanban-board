@@ -3,19 +3,9 @@ import { List } from "@backend/schema/list.schema";
 import { Ticket } from "@backend/schema/ticket.schema";
 import { fetchWithAuth } from "./helper";
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/event`;
-import { AddBoardEvent } from "@backend/boardEvents/addBoard.event";
 import { UpdateBoardEvent } from "@backend/boardEvents/updateBoard.event";
 import { DeleteBoardEvent } from "@backend/boardEvents/deleteBoard.event";
 import { GetBoardEvent } from "@backend/boardEvents/getBoard.event";
-
-export const addBoardAPI = async (
-  data: Omit<AddBoardEvent, "eventType">
-): Promise<Board> => {
-  return fetchWithAuth(`${API_URL}`, {
-    method: "POST",
-    body: JSON.stringify({ eventType: "ADD_BOARD", ...data }),
-  });
-};
 
 export const getBoardAPI = async (
   data: Omit<GetBoardEvent, "eventType">
