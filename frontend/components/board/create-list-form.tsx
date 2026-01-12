@@ -128,7 +128,7 @@ export const CreateListForm = () => {
   return (
     <button
       onClick={enableEditing}
-      className="flex w-full items-center rounded-md bg-white/80 p-3 text-sm font-medium transition hover:bg-white/50 text-black/70 hover:text-black dark:bg-black/40 dark:text-white dark:hover:bg-black/60"
+      className="flex w-full items-center rounded-md bg-[#f1f2f4] dark:bg-popover p-3 text-sm font-medium transition hover:bg-[#e4e6e9] dark:hover:bg-popover/80 text-foreground shadow-md"
     >
       <IconPlus className="mr-2 h-4 w-4" />
       Add another list
