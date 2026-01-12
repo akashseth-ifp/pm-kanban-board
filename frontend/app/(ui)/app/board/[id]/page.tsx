@@ -21,9 +21,11 @@ export default function BoardPage() {
   const listOrder = useBoardOrderStore((state) => state.listOrder);
 
   const [isConnected, setIsConnected] = useState(socket.connected);
-  console.log("Is connected:", isConnected);
 
   useEffect(() => {
+    // manually connect the socket
+    socket.connect();
+
     function onConnect() {
       console.log("Socket connected, joining board:", boardId);
       setIsConnected(true);
@@ -45,6 +47,7 @@ export default function BoardPage() {
     }
 
     return () => {
+      socket.disconnect();
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("boardEvent", applyServerEvent);

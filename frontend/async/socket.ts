@@ -11,7 +11,7 @@ const globalForSocket = globalThis as unknown as { socket: Socket | undefined };
 export const socket =
   globalForSocket.socket ??
   io(URL, {
-    autoConnect: true,
+    autoConnect: false,
   });
 
 if (process.env.NODE_ENV !== "production") {
