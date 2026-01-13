@@ -24,6 +24,9 @@ type BoardDataActions = {
   addCard(card: Ticket): void;
   updateCard(cardId: string, patch: Partial<Ticket>): void;
   deleteCard(cardId: string): void;
+
+  /* Board */
+  updateBoard(patch: Partial<Board>): void;
 };
 
 const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
@@ -100,6 +103,11 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
           const { [id]: _, ...rest } = s.ticketsById;
           return { ticketsById: rest };
         }),
+
+      updateBoard: (patch) =>
+        set((s) => ({
+          boardData: s.boardData ? { ...s.boardData, ...patch } : null,
+        })),
     }),
     {
       enabled: process.env.NODE_ENV === "development",

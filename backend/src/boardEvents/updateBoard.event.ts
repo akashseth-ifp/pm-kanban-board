@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { board } from "../schema/board.schema";
 import { boardEvent } from "../schema/board-events.schema";
-import { z, object, string, number } from "zod";
+import { z, object, string, number, uuid } from "zod";
 import { eq, sql } from "drizzle-orm";
 
 // Schema for validateResource middleware (expects body/params/query structure)
@@ -11,11 +11,12 @@ export const UpdateBoardEventSchema = object({
       message: "Event must be 'UPDATE_BOARD'",
     }),
     version: number(),
-    boardId: string().uuid("Valid board ID is required"),
+    boardId: uuid({
+      version: "v7",
+      message: "Invalid board ID",
+    }),
     payload: object({
-      title: string()
-        .min(3, "Title must be at least 3 characters long.")
-        .optional(),
+      title: string().min(3, "Title must be at least 3 characters long."),
     }).refine((data) => data.title, {
       message: "Title must be provided",
     }),
@@ -24,10 +25,16 @@ export const UpdateBoardEventSchema = object({
 
 export type UpdateBoardEvent = z.infer<typeof UpdateBoardEventSchema>["body"];
 
+export type UpdateBoardEventResponse = UpdateBoardEvent & {
+  userId: string;
+  version: number;
+  entityType: string;
+};
+
 export const updateBoardEvent = async (
   eventData: UpdateBoardEvent,
   userId: string
-) => {
+): Promise<UpdateBoardEventResponse> => {
   const { eventType, version: oldVersion, boardId, payload } = eventData;
 
   // Use transaction to ensure all operations succeed or fail together
@@ -50,20 +57,17 @@ export const updateBoardEvent = async (
       throw new Error("Board not found");
     }
 
-    // 2. Log the event to board_events table
-    await tx.insert(boardEvent).values({
-      boardId: updatedBoard.id,
+    const eventResponse = {
+      ...eventData,
       userId,
       version: updatedBoard.version,
-      eventType,
       entityType: "Board",
-      payload,
-    });
-
-    return {
-      newVersion: updatedBoard.version,
-      data: updatedBoard,
     };
+
+    // 2. Log the event to board_events table
+    await tx.insert(boardEvent).values(eventResponse);
+
+    return eventResponse;
   });
 
   return result;

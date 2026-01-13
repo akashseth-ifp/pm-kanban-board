@@ -44,8 +44,10 @@ export const boardEventPostHandler = async (
     }
 
     // Emit the event to the board room
-    const io = getIO();
-    io.to(boardId).emit("boardEvent", result);
+    if (eventType !== "GET_BOARD") {
+      const io = getIO();
+      io.to(boardId).emit("boardEvent", result);
+    }
 
     res.status(200).json(result);
   } catch (error) {
