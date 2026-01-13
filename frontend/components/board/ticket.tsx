@@ -1,9 +1,20 @@
 "use client";
 
-import { useState, useRef, ElementRef } from "react";
+import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { IconDots, IconTrash, IconEdit, IconX } from "@tabler/icons-react";
+import {
+  IconDots,
+  IconTrash,
+  IconEdit,
+  IconX,
+  IconCircle,
+  IconProgress,
+  IconEye,
+  IconBan,
+  IconCheck,
+  IconArchive,
+} from "@tabler/icons-react";
 import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,8 +31,24 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import useBoardDataStore from "@/store/boardData.store";
-
+import { Badge } from "@/components/ui/badge";
 import { EditTicketModal } from "./edit-ticket-modal";
+
+const PRIORITY_COLORS: Record<string, string> = {
+  Critical: "bg-red-500",
+  High: "bg-orange-500",
+  Medium: "bg-yellow-500",
+  Low: "bg-blue-500",
+};
+
+const STATUS_ICONS: Record<string, React.ElementType> = {
+  Backlog: IconArchive,
+  Todo: IconCircle,
+  "In Progress": IconProgress,
+  "In Review": IconEye,
+  Blocked: IconBan,
+  Done: IconCheck,
+};
 
 interface TicketProps {
   ticketId: string;
@@ -49,11 +76,12 @@ export const Ticket = ({ ticketId }: TicketProps) => {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: ticket.title,
+      title: ticket?.title || "",
     },
   });
 
-  const enableEditing = () => {
+  const enableEditing = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsEditing(true);
     setTimeout(() => {
       setFocus("title");
@@ -62,7 +90,7 @@ export const Ticket = ({ ticketId }: TicketProps) => {
 
   const disableEditing = () => {
     setIsEditing(false);
-    reset({ title: ticket.title });
+    reset({ title: ticket?.title || "" });
   };
 
   const { mutate: updateTicket, isPending: isUpdating } = useMutation({
@@ -106,12 +134,14 @@ export const Ticket = ({ ticketId }: TicketProps) => {
   useOnClickOutside(formRef as React.RefObject<HTMLElement>, disableEditing);
 
   const onSubmit = (data: FormData) => {
-    if (data.title === ticket.title) {
+    if (!ticket || data.title === ticket.title) {
       disableEditing();
       return;
     }
     updateTicket(data.title);
   };
+
+  if (!ticket) return null;
 
   if (isEditing) {
     return (
@@ -119,6 +149,7 @@ export const Ticket = ({ ticketId }: TicketProps) => {
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
         className="w-full px-1 py-1"
+        onClick={(e) => e.stopPropagation()}
       >
         <Textarea
           id="title"
@@ -156,41 +187,72 @@ export const Ticket = ({ ticketId }: TicketProps) => {
     );
   }
 
+  const StatusIcon = ticket.status ? STATUS_ICONS[ticket.status] : IconCircle;
+
   return (
     <>
       <div
         onClick={() => setIsModalOpen(true)}
-        className="group flex justify-between items-start bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 mb-2 hover:ring-1 hover:ring-primary transition-all cursor-pointer"
+        className="group flex flex-col bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 mb-2 hover:ring-1 hover:ring-primary transition-all cursor-pointer space-y-3"
       >
-        <div className="text-sm font-medium w-full truncate">
-          {ticket.title}
+        <div className="flex justify-between items-start">
+          <div className="text-sm font-medium w-full truncate pr-1">
+            {ticket.title}
+          </div>
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-auto w-auto p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <IconDots className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={enableEditing}>
+                  <IconEdit className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => deleteTicket()}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <IconTrash className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        <div onClick={(e) => e.stopPropagation()}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-auto w-auto p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {ticket.status && (
+              <Badge
+                variant="secondary"
+                className="px-1.5 py-0 h-5 text-[10px] font-semibold bg-secondary/30 text-secondary-foreground flex items-center gap-1 border-none shadow-none"
               >
-                <IconDots className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={enableEditing}>
-                <IconEdit className="h-4 w-4 mr-2" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => deleteTicket()}
-                className="text-destructive focus:text-destructive"
-              >
-                <IconTrash className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {StatusIcon && <StatusIcon className="h-3 w-3" />}
+                {ticket.status}
+              </Badge>
+            )}
+          </div>
+
+          {ticket.priority && (
+            <div className="flex items-center gap-1.5">
+              <div
+                className={`h-2 w-2 rounded-full ${
+                  PRIORITY_COLORS[ticket.priority] || "bg-gray-400"
+                } shadow-sm`}
+              />
+              <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70">
+                {ticket.priority}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <EditTicketModal
