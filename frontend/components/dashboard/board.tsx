@@ -55,32 +55,31 @@ export const Board = ({ board }: IProps) => {
     },
   });
 
+  const LinkWrapper = () => (
+    <Link href={`/app/board/${board.id}`} className="absolute inset-0 z-0">
+      <span className="sr-only">Open {board.title}</span>
+    </Link>
+  );
+
   return (
     <>
       <div className="group relative flex h-32 flex-col justify-between rounded-lg p-4 shadow-sm transition-transform hover:scale-[1.02] bg-muted/30 border border-border overflow-hidden cursor-pointer">
-        {/* Main Link (covers entire card except where buttons are) */}
-        <Link
-          href={`/app/board/${board.id}`}
-          className="absolute inset-0 z-[1]"
-        >
-          <span className="sr-only">Open {board.title}</span>
-        </Link>
-
-        {/* Header content (z-0, clicks pass to link) */}
-        <div className="relative z-0 flex items-start justify-between pointer-events-none">
+        <LinkWrapper />
+        <div className="relative flex items-start justify-between pointer-events-none">
           <h3 className="font-semibold text-foreground truncate">
             {board.title}
           </h3>
           <IconExternalLink className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
 
-        {/* Actions (z-[2], clickable above the link) */}
-        <div className="relative z-[2] flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+        <div className="relative flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          <LinkWrapper />
           <Button
             variant="secondary"
             size="icon"
             className="h-8 w-8 bg-background/50 backdrop-blur-md hover:bg-background hover:text-foreground border border-border"
             onClick={(e) => {
+              e.stopPropagation();
               e.preventDefault();
               setIsEditModalOpen(true);
             }}
@@ -93,6 +92,7 @@ export const Board = ({ board }: IProps) => {
             size="icon"
             className="h-8 w-8 bg-background/50 backdrop-blur-md hover:bg-background hover:text-destructive border border-border"
             onClick={(e) => {
+              e.stopPropagation();
               e.preventDefault();
               setIsDeleteOpen(true);
             }}
