@@ -197,20 +197,20 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
           )}
         </div>
 
-        {/* Card List Placeholder */}
+        {/* Ticket List Placeholder */}
         <div className="flex flex-col mx-1 px-1 py-0.5 min-h-[20px]">
-          {/* Cards will map here */}
+          {/* Tickets will map here */}
         </div>
 
-        {/* Add Card Footer Placeholder */}
-        <div className="px-2 pt-2">
+        {/* Add Ticket Footer Placeholder */}
+        <div className="px-2">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start text-muted-foreground hover:text-black dark:text-neutral-300 dark:hover:text-white hover:bg-black/10 transition-colors"
+            className="w-full justify-start text-muted-foreground hover:text-black dark:text-neutral-300 dark:hover:text-white hover:bg-black/10 transition-colors py-5"
           >
             <IconPlus className="mr-2 h-4 w-4" />
-            Add a card
+            Add a Ticket
           </Button>
         </div>
       </div>
