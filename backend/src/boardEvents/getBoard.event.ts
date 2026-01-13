@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { board, list } from "../schema";
+import { Board, board, List, list, Ticket } from "../schema";
 import { z, object, uuid, string } from "zod";
 import { eq, asc } from "drizzle-orm";
 
@@ -16,6 +16,11 @@ export const GetBoardEventSchema = object({
 });
 
 export type GetBoardEvent = z.infer<typeof GetBoardEventSchema>["body"];
+export type GetBoardEventResponse = {
+  board: Board;
+  lists: List[];
+  tickets: Ticket[];
+};
 
 export const getBoardEvent = async (
   eventData: GetBoardEvent,

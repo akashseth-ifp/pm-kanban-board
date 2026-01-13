@@ -1,6 +1,3 @@
-import { Board } from "@backend/schema/board.schema";
-import { List } from "@backend/schema/list.schema";
-import { Ticket } from "@backend/schema/ticket.schema";
 import { fetchWithAuth } from "./helper";
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/event`;
 import {
@@ -11,11 +8,14 @@ import {
   DeleteBoardEvent,
   DeleteBoardEventResponse,
 } from "@backend/boardEvents/deleteBoard.event";
-import { GetBoardEvent } from "@backend/boardEvents/getBoard.event";
+import {
+  GetBoardEvent,
+  GetBoardEventResponse,
+} from "@backend/boardEvents/getBoard.event";
 
 export const getBoardAPI = async (
   data: Omit<GetBoardEvent, "eventType">
-): Promise<{ board: Board; lists: List[]; tickets: Ticket[] }> => {
+): Promise<GetBoardEventResponse> => {
   return fetchWithAuth(`${API_URL}`, {
     method: "POST",
     body: JSON.stringify({ eventType: "GET_BOARD", ...data }),
