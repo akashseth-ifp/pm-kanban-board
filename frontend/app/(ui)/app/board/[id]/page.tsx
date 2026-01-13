@@ -60,6 +60,7 @@ export default function BoardPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["board", boardId],
     queryFn: () => getBoardAPI({ boardId }),
+    staleTime: 0,
     enabled: !!boardId,
   });
 

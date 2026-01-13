@@ -158,10 +158,7 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
               </div>
             </form>
           ) : (
-            <div
-              onClick={enableEditing}
-              className="w-full text-sm px-2.5 py-1 h-7 font-medium border-transparent cursor-pointer"
-            >
+            <div className="w-full text-sm px-2.5 py-1 h-7 font-medium border-transparent">
               {list.title}
             </div>
           )}
