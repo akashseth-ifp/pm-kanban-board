@@ -21,9 +21,9 @@ type BoardDataActions = {
   deleteList(listId: string): void;
 
   /* Cards */
-  addCard(card: Ticket): void;
-  updateCard(cardId: string, patch: Partial<Ticket>): void;
-  deleteCard(cardId: string): void;
+  addTicket(ticket: Ticket): void;
+  updateTicket(ticketId: string, patch: Partial<Ticket>): void;
+  deleteTicket(ticketId: string): void;
 
   /* Board */
   updateBoard(patch: Partial<Board>): void;
@@ -82,15 +82,15 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
           return { listsById: rest };
         }),
 
-      addCard: (card) =>
+      addTicket: (ticket) =>
         set((s) => {
-          if (s.ticketsById[card.id]) return s;
+          if (s.ticketsById[ticket.id]) return s;
           return {
-            ticketsById: { ...s.ticketsById, [card.id]: card },
+            ticketsById: { ...s.ticketsById, [ticket.id]: ticket },
           };
         }),
 
-      updateCard: (id, patch) =>
+      updateTicket: (id, patch) =>
         set((s) => ({
           ticketsById: {
             ...s.ticketsById,
@@ -98,7 +98,7 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
           },
         })),
 
-      deleteCard: (id) =>
+      deleteTicket: (id) =>
         set((s) => {
           const { [id]: _, ...rest } = s.ticketsById;
           return { ticketsById: rest };

@@ -57,6 +57,13 @@
       "when": 1767821923114,
       "tag": "0007_smooth_swordsman",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1768289980431,
+      "tag": "0008_dizzy_justin_hammer",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,186 @@
+"use client";
+
+import { useState, useRef, ElementRef } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { IconDots, IconTrash, IconEdit, IconX } from "@tabler/icons-react";
+import { useEventListener, useOnClickOutside } from "usehooks-ts";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+import { updateTicketAPI, deleteTicketAPI } from "@/clientAPI/ticketEventAPI";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import useBoardDataStore from "@/store/boardData.store";
+
+interface TicketProps {
+  ticketId: string;
+}
+
+const formSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+export const Ticket = ({ ticketId }: TicketProps) => {
+  const ticket = useBoardDataStore((state) => state.ticketsById[ticketId]);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const {
+    register,
+    handleSubmit,
+    setFocus,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: ticket.title,
+    },
+  });
+
+  const enableEditing = () => {
+    setIsEditing(true);
+    setTimeout(() => {
+      setFocus("title");
+    });
+  };
+
+  const disableEditing = () => {
+    setIsEditing(false);
+    reset({ title: ticket.title });
+  };
+
+  const { mutate: updateTicket, isPending: isUpdating } = useMutation({
+    mutationFn: (newTitle: string) =>
+      updateTicketAPI({
+        boardId: ticket.boardId,
+        payload: { id: ticket.id, title: newTitle },
+        listId: ticket.listId,
+      }),
+    onSuccess: () => {
+      setIsEditing(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update ticket");
+      reset({ title: ticket.title });
+    },
+  });
+
+  const { mutate: deleteTicket } = useMutation({
+    mutationFn: () =>
+      deleteTicketAPI({
+        boardId: ticket.boardId,
+        payload: { id: ticket.id },
+        listId: ticket.listId,
+      }),
+    onSuccess: () => {
+      toast.success("Ticket deleted");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete ticket");
+    },
+  });
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      disableEditing();
+    }
+  };
+
+  useEventListener("keydown", onKeyDown);
+  useOnClickOutside(formRef as React.RefObject<HTMLElement>, disableEditing);
+
+  const onSubmit = (data: FormData) => {
+    if (data.title === ticket.title) {
+      disableEditing();
+      return;
+    }
+    updateTicket(data.title);
+  };
+
+  if (isEditing) {
+    return (
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full px-1 py-1"
+      >
+        <Textarea
+          id="title"
+          {...register("title")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(onSubmit)();
+            }
+          }}
+          className="h-20 w-full border-orange-500 focus-visible:ring-base bg-background px-2 resize-none"
+          placeholder="Enter ticket title..."
+        />
+        <div className="flex items-center gap-x-1 mt-2">
+          <Button
+            type="submit"
+            size="sm"
+            variant="default"
+            loading={isUpdating}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            Update Ticket
+          </Button>
+          <Button
+            type="button"
+            onClick={disableEditing}
+            size="sm"
+            variant="ghost"
+            className="px-2"
+          >
+            <IconX className="h-4 w-4" />
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  return (
+    <div className="group flex justify-between items-start bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 mb-2 hover:ring-1 hover:ring-primary transition-all">
+      <div className="text-sm font-medium w-full truncate">{ticket.title}</div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-auto w-auto p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <IconDots className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={enableEditing}>
+            <IconEdit className="h-4 w-4 mr-2" />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => deleteTicket()}
+            className="text-destructive focus:text-destructive"
+          >
+            <IconTrash className="h-4 w-4 mr-2" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};

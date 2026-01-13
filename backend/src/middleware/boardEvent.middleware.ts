@@ -7,6 +7,9 @@ import { GetBoardEventSchema } from "../boardEvents/getBoard.event";
 import { AddListEventSchema } from "../boardEvents/addList.event";
 import { UpdateListEventSchema } from "../boardEvents/updateList.event";
 import { DeleteListEventSchema } from "../boardEvents/deleteList.event";
+import { AddTicketEventSchema } from "../boardEvents/addTicket.event";
+import { UpdateTicketEventSchema } from "../boardEvents/updateTicket.event";
+import { DeleteTicketEventSchema } from "../boardEvents/deleteTicket.event";
 
 export const boardEventMiddleware = (
   req: Request,
@@ -69,6 +72,40 @@ export const boardEventMiddleware = (
 
     if (eventType === "DELETE_LIST") {
       return validateResource(DeleteListEventSchema)(
+        req,
+        res,
+        (validationErr) => {
+          if (validationErr) return next(validationErr);
+          return authorizeResource("Member")(req, res, next);
+        }
+      );
+    }
+
+    // add support for eventType ADD_TICKET, UPDATE_TICKET, DELETE_TICKET
+    if (eventType === "ADD_TICKET") {
+      return validateResource(AddTicketEventSchema)(
+        req,
+        res,
+        (validationErr) => {
+          if (validationErr) return next(validationErr);
+          return authorizeResource("Member")(req, res, next);
+        }
+      );
+    }
+
+    if (eventType === "UPDATE_TICKET") {
+      return validateResource(UpdateTicketEventSchema)(
+        req,
+        res,
+        (validationErr) => {
+          if (validationErr) return next(validationErr);
+          return authorizeResource("Member")(req, res, next);
+        }
+      );
+    }
+
+    if (eventType === "DELETE_TICKET") {
+      return validateResource(DeleteTicketEventSchema)(
         req,
         res,
         (validationErr) => {

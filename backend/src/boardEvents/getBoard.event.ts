@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { Board, board, List, list, Ticket } from "../schema";
+import { Board, board, List, list, ticket, Ticket } from "../schema";
 import { z, object, uuid, string } from "zod";
 import { eq, asc } from "drizzle-orm";
 
@@ -44,9 +44,16 @@ export const getBoardEvent = async (
     .where(eq(list.boardId, boardId))
     .orderBy(asc(list.position));
 
+  // all the tickets for the board sorted by position
+  const foundTickets = await db
+    .select()
+    .from(ticket)
+    .where(eq(ticket.boardId, boardId))
+    .orderBy(asc(ticket.position));
+
   return {
     board: foundBoard,
     lists: foundLists,
-    tickets: [],
+    tickets: foundTickets,
   };
 };

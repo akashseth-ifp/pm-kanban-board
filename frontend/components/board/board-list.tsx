@@ -3,13 +3,7 @@
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  IconDots,
-  IconTrash,
-  IconEdit,
-  IconPlus,
-  IconX,
-} from "@tabler/icons-react";
+import { IconDots, IconTrash, IconEdit, IconX } from "@tabler/icons-react";
 import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +20,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useParams } from "next/navigation";
 import useBoardDataStore from "@/store/boardData.store";
+import { Ticket } from "./ticket";
+import { CreateTicketForm } from "./create-ticket-form";
+import useBoardOrderStore from "@/store/boardOrder.store";
 
 interface BoardListProps {
   listId: string;
@@ -41,7 +38,9 @@ type FormData = z.infer<typeof formSchema>;
 export const BoardList = ({ listId, index }: BoardListProps) => {
   const params = useParams();
   const list = useBoardDataStore((state) => state.listsById[listId]);
-  if (!list) return null;
+  const ticketsByList = useBoardOrderStore(
+    (state) => state.ticketOrderByList[listId]
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -197,22 +196,15 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
           )}
         </div>
 
-        {/* Ticket List Placeholder */}
+        {/* Ticket List */}
         <div className="flex flex-col mx-1 px-1 py-0.5 min-h-[20px]">
-          {/* Tickets will map here */}
+          {ticketsByList.map((ticket) => (
+            <Ticket key={ticket.id} ticketId={ticket.id} />
+          ))}
         </div>
 
-        {/* Add Ticket Footer Placeholder */}
-        <div className="px-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-muted-foreground hover:text-black dark:text-neutral-300 dark:hover:text-white hover:bg-black/10 transition-colors py-5"
-          >
-            <IconPlus className="mr-2 h-4 w-4" />
-            Add a Ticket
-          </Button>
-        </div>
+        {/* Add Ticket Form */}
+        <CreateTicketForm listId={listId} />
       </div>
     </li>
   );

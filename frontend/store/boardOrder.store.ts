@@ -28,7 +28,7 @@ type BoardOrderActions = {
   deleteList(listId: string): void; // Delete list from the listOrder
 
   /* Cards */
-  addTicket(ticket: Ticket, listId: string): void; // Add card to the cardOrderByList
+  addTicket(ticket: BaseValue, listId: string): void; // Add card to the cardOrderByList
   updateTicketPosition(
     ticketId: string,
     fromListId: string,
@@ -117,28 +117,40 @@ const useBoardOrderStore = create<BoardOrderState & BoardOrderActions>()(
         }),
 
       updateTicketPosition: (
+        ticketId,
         fromListId,
         toListId,
-        ticketId,
         fromIndex,
         toIndex,
         newPosition
       ) =>
         set((s) => {
           const newTicketOrderByList = { ...s.ticketOrderByList };
-          const fromListTickets = newTicketOrderByList[fromListId] || [];
-          const toListTickets = newTicketOrderByList[toListId] || [];
+          const fromListTickets = [...(newTicketOrderByList[fromListId] || [])];
+          const toListTickets =
+            fromListId === toListId
+              ? fromListTickets
+              : [...(newTicketOrderByList[toListId] || [])];
+
           fromListTickets.splice(fromIndex, 1);
           toListTickets.splice(toIndex, 0, {
             id: ticketId,
             position: newPosition,
           });
+
+          if (fromListId !== toListId) {
+            newTicketOrderByList[fromListId] = fromListTickets;
+            newTicketOrderByList[toListId] = toListTickets;
+          } else {
+            newTicketOrderByList[fromListId] = fromListTickets;
+          }
+
           return {
             ticketOrderByList: newTicketOrderByList,
           };
         }),
 
-      deleteTicket: (listId, ticketId) =>
+      deleteTicket: (ticketId, listId) =>
         set((s) => {
           const listTickets = s.ticketOrderByList[listId] || [];
           return {
