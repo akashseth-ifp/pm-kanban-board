@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import useBoardDataStore from "@/store/boardData.store";
 
+import { EditTicketModal } from "./edit-ticket-modal";
+
 interface TicketProps {
   ticketId: string;
 }
@@ -35,6 +37,7 @@ export const Ticket = ({ ticketId }: TicketProps) => {
   const ticket = useBoardDataStore((state) => state.ticketsById[ticketId]);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const {
@@ -154,33 +157,47 @@ export const Ticket = ({ ticketId }: TicketProps) => {
   }
 
   return (
-    <div className="group flex justify-between items-start bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 mb-2 hover:ring-1 hover:ring-primary transition-all">
-      <div className="text-sm font-medium w-full truncate">{ticket.title}</div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-auto w-auto p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <IconDots className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={enableEditing}>
-            <IconEdit className="h-4 w-4 mr-2" />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => deleteTicket()}
-            className="text-destructive focus:text-destructive"
-          >
-            <IconTrash className="h-4 w-4 mr-2" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <>
+      <div
+        onClick={() => setIsModalOpen(true)}
+        className="group flex justify-between items-start bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 mb-2 hover:ring-1 hover:ring-primary transition-all cursor-pointer"
+      >
+        <div className="text-sm font-medium w-full truncate">
+          {ticket.title}
+        </div>
+        <div onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-auto w-auto p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <IconDots className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={enableEditing}>
+                <IconEdit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => deleteTicket()}
+                className="text-destructive focus:text-destructive"
+              >
+                <IconTrash className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      <EditTicketModal
+        ticket={ticket}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+      />
+    </>
   );
 };

@@ -25,6 +25,8 @@ export const UpdateTicketEventSchema = object({
       }),
       title: string().min(1, "Title is required").optional(),
       description: string().optional(),
+      priority: string().optional(),
+      status: string().optional(),
     }),
   }),
 });
