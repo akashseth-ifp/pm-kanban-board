@@ -28,6 +28,30 @@ import {
 } from "@/components/ui/select";
 import { Ticket } from "@backend/schema/ticket.schema";
 import { updateTicketAPI } from "@/clientAPI/ticketEventAPI";
+import {
+  IconCircle,
+  IconProgress,
+  IconEye,
+  IconBan,
+  IconCheck,
+  IconArchive,
+} from "@tabler/icons-react";
+
+const PRIORITY_COLORS: Record<string, string> = {
+  Critical: "bg-red-500",
+  High: "bg-orange-500",
+  Medium: "bg-yellow-500",
+  Low: "bg-blue-500",
+};
+
+const STATUS_ICONS: Record<string, React.ElementType> = {
+  Backlog: IconArchive,
+  Todo: IconCircle,
+  "In Progress": IconProgress,
+  "In Review": IconEye,
+  Blocked: IconBan,
+  Done: IconCheck,
+};
 
 const ticketSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -152,18 +176,30 @@ export const EditTicketModal = ({
                   name="priority"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select priority" />
+                        <SelectValue placeholder="Select priority">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`h-2 w-2 rounded-full ${
+                                PRIORITY_COLORS[field.value]
+                              }`}
+                            />
+                            {field.value}
+                          </div>
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Critical">Critical</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
+                        {Object.entries(PRIORITY_COLORS).map(([p, color]) => (
+                          <SelectItem key={p} value={p}>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`h-2 w-2 rounded-full ${color}`}
+                              />
+                              {p}
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   )}
@@ -176,20 +212,27 @@ export const EditTicketModal = ({
                   name="status"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue placeholder="Select status">
+                          <div className="flex items-center gap-2">
+                            {STATUS_ICONS[field.value] &&
+                              React.createElement(STATUS_ICONS[field.value], {
+                                className: "h-4 w-4 text-muted-foreground",
+                              })}
+                            {field.value}
+                          </div>
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Backlog">Backlog</SelectItem>
-                        <SelectItem value="Todo">Todo</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="In Review">In Review</SelectItem>
-                        <SelectItem value="Blocked">Blocked</SelectItem>
-                        <SelectItem value="Done">Done</SelectItem>
+                        {Object.entries(STATUS_ICONS).map(([s, Icon]) => (
+                          <SelectItem key={s} value={s}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="h-4 w-4 text-muted-foreground" />
+                              {s}
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   )}
