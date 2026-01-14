@@ -12,7 +12,7 @@ export const BoardContainer = ({ board, children }: BoardContainerProps) => {
   return (
     <div
       className={cn(
-        "flex h-full w-full flex-col overflow-hidden bg-white dark:bg-slate-950"
+        "flex h-[calc(100vh-60px)] w-full flex-col overflow-hidden bg-white dark:bg-slate-950"
       )}
     >
       {children}

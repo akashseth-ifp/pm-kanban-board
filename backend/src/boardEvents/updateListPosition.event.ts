@@ -83,7 +83,10 @@ export const updateListPositionEvent = async (
     };
 
     // 3. Log the event to board_events table
-    await tx.insert(boardEvent).values(eventResponse);
+    await tx.insert(boardEvent).values({
+      ...eventResponse,
+      eventType: "MOVE_LIST",
+    });
 
     return eventResponse;
   });

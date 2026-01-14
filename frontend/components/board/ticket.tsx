@@ -19,7 +19,16 @@ import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import {
+  draggable,
+  dropTargetForElements,
+} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import {
+  attachClosestEdge,
+  extractClosestEdge,
+} from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
+import { Edge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/types";
+import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview";
 import { updateTicketAPI, deleteTicketAPI } from "@/clientAPI/ticketEventAPI";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +42,7 @@ import {
 import useBoardDataStore from "@/store/boardData.store";
 import { Badge } from "@/components/ui/badge";
 import { EditTicketModal } from "./edit-ticket-modal";
+import { DropIndicator } from "./drop-indicator";
 
 const PRIORITY_COLORS: Record<string, string> = {
   Critical: "bg-red-500",
@@ -68,8 +78,11 @@ export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+
   const formRef = useRef<HTMLFormElement>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
+  const dropTargetRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -99,8 +112,62 @@ export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
       }),
       onDragStart: () => setIsDragging(true),
       onDrop: () => setIsDragging(false),
+      onGenerateDragPreview: ({ nativeSetDragImage, location }) => {
+        setCustomNativeDragPreview({
+          nativeSetDragImage,
+          getOffset: ({ container }) => {
+            const rect = element.getBoundingClientRect();
+            const x = location.initial.input.clientX - rect.left;
+            const y = location.initial.input.clientY - rect.top;
+            return { x, y };
+          },
+          render({ container }) {
+            const clone = element.cloneNode(true) as HTMLElement;
+            clone.classList.remove(
+              "hover:ring-1",
+              "hover:ring-primary",
+              "hover:ring-2",
+              "hover:ring-blue-400"
+            );
+            clone.style.width = `${element.offsetWidth}px`;
+            clone.style.transform = "rotate(2deg)";
+            clone.style.boxShadow = "none";
+            clone.style.opacity = "0.9";
+            container.appendChild(clone);
+          },
+        });
+      },
     });
   }, [ticketId, listId, index, isEditing]);
+
+  // Set up drop target for ticket reordering
+  useEffect(() => {
+    const element = dropTargetRef.current;
+    if (!element) return;
+
+    return dropTargetForElements({
+      element,
+      canDrop: ({ source }) => source.data.type === "ticket",
+      getData: ({ input, element }) => {
+        const data = { type: "ticket", ticketId, listId, index };
+        return attachClosestEdge(data, {
+          input,
+          element,
+          allowedEdges: ["top", "bottom"],
+        });
+      },
+      onDragEnter: ({ self }) => {
+        const edge = extractClosestEdge(self.data);
+        setClosestEdge(edge);
+      },
+      onDrag: ({ self }) => {
+        const edge = extractClosestEdge(self.data);
+        setClosestEdge(edge);
+      },
+      onDragLeave: () => setClosestEdge(null),
+      onDrop: () => setClosestEdge(null),
+    });
+  }, [ticketId, listId, index]);
 
   const enableEditing = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -214,70 +281,79 @@ export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
   return (
     <>
       <div
-        ref={ticketRef}
-        onClick={() => setIsModalOpen(true)}
-        className={`group flex flex-col bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 mb-2 hover:ring-1 hover:ring-primary transition-all cursor-grab active:cursor-grabbing space-y-3 ${
-          isDragging ? "opacity-50 rotate-2 scale-105" : ""
-        }`}
+        ref={dropTargetRef}
+        id={`ticket-card-${ticketId}`}
+        className="relative py-[6px]" // 6px top + 6px bottom = 12px gap
       >
-        <div className="flex justify-between items-start">
-          <div className="text-sm font-medium w-full truncate pr-1">
-            {ticket.title}
+        <DropIndicator edge={closestEdge} gap={0} />
+        <div
+          ref={ticketRef}
+          onClick={() => setIsModalOpen(true)}
+          className={`group flex flex-col bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 transition-all cursor-grab active:cursor-grabbing space-y-3 outline-none ring-0 ${
+            isDragging
+              ? "opacity-30"
+              : "hover:ring-1 hover:ring-primary hover:bg-primary/[0.02]"
+          }`}
+        >
+          <div className="flex justify-between items-start">
+            <div className="text-sm font-medium w-full truncate pr-1">
+              {ticket.title}
+            </div>
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-auto w-auto p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <IconDots className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={enableEditing}>
+                    <IconEdit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => deleteTicket()}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <IconTrash className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div onClick={(e) => e.stopPropagation()}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-auto w-auto p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <IconDots className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={enableEditing}>
-                  <IconEdit className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => deleteTicket()}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <IconTrash className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {ticket.status && (
-              <Badge
-                variant="secondary"
-                className="px-1.5 py-0 h-5 text-[10px] font-semibold bg-secondary/30 text-secondary-foreground flex items-center gap-1 border-none shadow-none"
-              >
-                {StatusIcon && <StatusIcon className="h-3 w-3" />}
-                {ticket.status}
-              </Badge>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {ticket.status && (
+                <Badge
+                  variant="secondary"
+                  className="px-1.5 py-0 h-5 text-[10px] font-semibold bg-secondary/30 text-secondary-foreground flex items-center gap-1 border-none shadow-none"
+                >
+                  {StatusIcon && <StatusIcon className="h-3 w-3" />}
+                  {ticket.status}
+                </Badge>
+              )}
+            </div>
+
+            {ticket.priority && (
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={`h-2 w-2 rounded-full ${
+                    PRIORITY_COLORS[ticket.priority] || "bg-gray-400"
+                  } shadow-sm`}
+                />
+                <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70">
+                  {ticket.priority}
+                </span>
+              </div>
             )}
           </div>
-
-          {ticket.priority && (
-            <div className="flex items-center gap-1.5">
-              <div
-                className={`h-2 w-2 rounded-full ${
-                  PRIORITY_COLORS[ticket.priority] || "bg-gray-400"
-                } shadow-sm`}
-              />
-              <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70">
-                {ticket.priority}
-              </span>
-            </div>
-          )}
         </div>
       </div>
       <EditTicketModal

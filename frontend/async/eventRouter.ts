@@ -8,20 +8,16 @@ import { DeleteBoardEventResponse } from "@backend/boardEvents/deleteBoard.event
 import { AddTicketEventResponse } from "@backend/boardEvents/addTicket.event";
 import { UpdateTicketEventResponse } from "@backend/boardEvents/updateTicket.event";
 import { DeleteTicketEventResponse } from "@backend/boardEvents/deleteTicket.event";
-import { UpdateListPositionEventResponse } from "@backend/boardEvents/updateListPosition.event";
-import { UpdateTicketPositionEventResponse } from "@backend/boardEvents/updateTicketPosition.event";
 import { toast } from "sonner";
 
 type Event =
   | AddListEventResponse
   | UpdateListEventResponse
-  | UpdateListPositionEventResponse
   | DeleteListEventResponse
   | UpdateBoardEventResponse
   | DeleteBoardEventResponse
   | AddTicketEventResponse
   | UpdateTicketEventResponse
-  | UpdateTicketPositionEventResponse
   | DeleteTicketEventResponse;
 
 export function applyServerEvent(event: Event) {
@@ -60,35 +56,6 @@ export function applyServerEvent(event: Event) {
       useBoardOrderStore.getState().deleteList(deleteListPayload.id);
       useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().deleteList(deleteListPayload.id);
-      break;
-
-    case "UPDATE_LIST_POSITION":
-      const { payload: updateListPositionPayload } =
-        event as UpdateListPositionEventResponse;
-      console.log("UPDATE_LIST_POSITION payload:", updateListPositionPayload);
-      useBoardDataStore.getState().setVersion(event.version);
-      // Find the current index and calculate the new index based on position
-      const currentListOrder = useBoardOrderStore.getState().listOrder;
-      const currentListIndex = currentListOrder.findIndex(
-        (l) => l.id === updateListPositionPayload.id
-      );
-      if (currentListIndex !== -1) {
-        // Find where this list should be inserted based on its new position
-        let newListIndex = currentListOrder.findIndex(
-          (l, idx) =>
-            idx !== currentListIndex &&
-            l.position > updateListPositionPayload.position
-        );
-        if (newListIndex === -1) newListIndex = currentListOrder.length;
-        useBoardOrderStore
-          .getState()
-          .updateListPosition(
-            updateListPositionPayload.id,
-            currentListIndex,
-            newListIndex,
-            updateListPositionPayload.position
-          );
-      }
       break;
 
     case "UPDATE_BOARD":
@@ -133,59 +100,6 @@ export function applyServerEvent(event: Event) {
         );
       useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().deleteTicket(deleteTicketPayload.id);
-      break;
-
-    case "UPDATE_TICKET_POSITION":
-      const {
-        payload: updateTicketPositionPayload,
-        listId,
-        fromListId,
-      } = event as UpdateTicketPositionEventResponse;
-      console.log(
-        "UPDATE_TICKET_POSITION payload:",
-        updateTicketPositionPayload
-      );
-      useBoardDataStore.getState().setVersion(event.version);
-
-      const oldListId = fromListId || listId;
-      const newListId = listId;
-
-      // Update ticket's listId in boardDataStore if it moved to a different list
-      if (oldListId !== newListId) {
-        useBoardDataStore
-          .getState()
-          .updateTicket(updateTicketPositionPayload.id, {
-            listId: newListId,
-          });
-      }
-
-      // Find the current index and calculate the new index based on position
-      const currentTicketOrder =
-        useBoardOrderStore.getState().ticketOrderByList[oldListId] || [];
-      const currentTicketIndex = currentTicketOrder.findIndex(
-        (t) => t.id === updateTicketPositionPayload.id
-      );
-
-      if (currentTicketIndex !== -1 || oldListId !== newListId) {
-        const targetTicketOrder =
-          useBoardOrderStore.getState().ticketOrderByList[newListId] || [];
-        // Find where this ticket should be inserted based on its new position
-        let newTicketIndex = targetTicketOrder.findIndex(
-          (t) => t.position > updateTicketPositionPayload.position
-        );
-        if (newTicketIndex === -1) newTicketIndex = targetTicketOrder.length;
-
-        useBoardOrderStore
-          .getState()
-          .updateTicketPosition(
-            updateTicketPositionPayload.id,
-            oldListId,
-            newListId,
-            currentTicketIndex === -1 ? 0 : currentTicketIndex,
-            newTicketIndex,
-            updateTicketPositionPayload.position
-          );
-      }
       break;
 
     case "DELETE_BOARD":

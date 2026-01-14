@@ -10,6 +10,8 @@ import { DeleteListEventSchema } from "../boardEvents/deleteList.event";
 import { AddTicketEventSchema } from "../boardEvents/addTicket.event";
 import { UpdateTicketEventSchema } from "../boardEvents/updateTicket.event";
 import { DeleteTicketEventSchema } from "../boardEvents/deleteTicket.event";
+import { UpdateListPositionEventSchema } from "../boardEvents/updateListPosition.event";
+import { UpdateTicketPositionEventSchema } from "../boardEvents/updateTicketPosition.event";
 
 export const boardEventMiddleware = (
   req: Request,
@@ -106,6 +108,28 @@ export const boardEventMiddleware = (
 
     if (eventType === "DELETE_TICKET") {
       return validateResource(DeleteTicketEventSchema)(
+        req,
+        res,
+        (validationErr) => {
+          if (validationErr) return next(validationErr);
+          return authorizeResource("Member")(req, res, next);
+        }
+      );
+    }
+
+    if (eventType === "UPDATE_LIST_POSITION") {
+      return validateResource(UpdateListPositionEventSchema)(
+        req,
+        res,
+        (validationErr) => {
+          if (validationErr) return next(validationErr);
+          return authorizeResource("Member")(req, res, next);
+        }
+      );
+    }
+
+    if (eventType === "UPDATE_TICKET_POSITION") {
+      return validateResource(UpdateTicketPositionEventSchema)(
         req,
         res,
         (validationErr) => {

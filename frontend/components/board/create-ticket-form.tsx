@@ -23,9 +23,13 @@ type FormData = z.infer<typeof formSchema>;
 
 interface CreateTicketFormProps {
   listId: string;
+  onTicketCreate?: () => void;
 }
 
-export const CreateTicketForm = ({ listId }: CreateTicketFormProps) => {
+export const CreateTicketForm = ({
+  listId,
+  onTicketCreate,
+}: CreateTicketFormProps) => {
   const params = useParams();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -86,6 +90,7 @@ export const CreateTicketForm = ({ listId }: CreateTicketFormProps) => {
   useOnClickOutside(formRef as React.RefObject<HTMLElement>, disableEditing);
 
   const onSubmit = (formData: FormData) => {
+    onTicketCreate?.();
     mutate(formData);
   };
 
@@ -142,7 +147,7 @@ export const CreateTicketForm = ({ listId }: CreateTicketFormProps) => {
         className="w-full justify-start text-muted-foreground hover:text-black dark:text-neutral-300 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/5 transition-colors py-5"
       >
         <IconPlus className="mr-2 h-4 w-4" />
-        Add a Ticket
+        Add new ticket
       </Button>
     </div>
   );

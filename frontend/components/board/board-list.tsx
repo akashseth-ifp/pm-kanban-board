@@ -12,6 +12,14 @@ import {
   dropTargetForElements,
   draggable,
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
+import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview";
+import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
+import {
+  attachClosestEdge,
+  extractClosestEdge,
+} from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
+import { Edge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/types";
 import { updateListAPI, deleteListAPI } from "@/clientAPI/listEventAPI";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +35,7 @@ import useBoardDataStore from "@/store/boardData.store";
 import { Ticket } from "./ticket";
 import { CreateTicketForm } from "./create-ticket-form";
 import useBoardOrderStore from "@/store/boardOrder.store";
+import { DropIndicator } from "./drop-indicator";
 
 interface BoardListProps {
   listId: string;
@@ -47,11 +56,13 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
   );
 
   const [isEditing, setIsEditing] = useState(false);
-  const [isDraggedOver, setIsDraggedOver] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+
   const formRef = useRef<HTMLFormElement>(null);
   const ticketListRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLLIElement>(null);
+  const [ticketClosestEdge, setTicketClosestEdge] = useState<Edge | null>(null);
 
   const {
     register,
@@ -66,19 +77,84 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
     },
   });
 
-  // Set up drop target for tickets
+  // Set up drop target for tickets AND list reordering
   useEffect(() => {
-    const element = ticketListRef.current;
+    const element = listRef.current;
     if (!element) return;
 
     return dropTargetForElements({
       element,
-      getData: () => ({ listId }),
-      onDragEnter: () => setIsDraggedOver(true),
-      onDragLeave: () => setIsDraggedOver(false),
-      onDrop: () => setIsDraggedOver(false),
+      canDrop: ({ source }) => source.data.type === "list",
+      getData: ({ input, element }) => {
+        const data = { type: "list", listId, index };
+        return attachClosestEdge(data, {
+          input,
+          element,
+          allowedEdges: ["left", "right"],
+        });
+      },
+      onDragEnter: ({ self }) => {
+        const edge = extractClosestEdge(self.data);
+        setClosestEdge(edge);
+      },
+      onDrag: ({ self }) => {
+        const edge = extractClosestEdge(self.data);
+        setClosestEdge(edge);
+      },
+      onDragLeave: () => setClosestEdge(null),
+      onDrop: () => setClosestEdge(null),
     });
-  }, [listId]);
+  }, [listId, index]);
+
+  // Set up drop target for tickets within this list and auto-scroll
+  useEffect(() => {
+    const element = ticketListRef.current;
+    if (!element) return;
+
+    return combine(
+      dropTargetForElements({
+        element,
+        canDrop: ({ source }) => source.data.type === "ticket",
+        getData: () => ({ type: "list-ticket-area", listId }),
+        onDragEnter: () => {
+          // IMPORTANT: Only use the area indicator if the list is TRULY empty.
+          // For non-empty lists, cards handle their own boundaries.
+          if (ticketsByList.length === 0) {
+            setTicketClosestEdge("top");
+          }
+        },
+        onDrag: () => {
+          if (ticketsByList.length === 0) {
+            setTicketClosestEdge("top");
+          } else {
+            setTicketClosestEdge(null);
+          }
+        },
+        onDragLeave: () => setTicketClosestEdge(null),
+        onDrop: () => setTicketClosestEdge(null),
+      }),
+      autoScrollForElements({
+        element,
+      })
+    );
+  }, [listId, ticketsByList.length]); // Track length to avoid stale closure
+
+  // Scroll to bottom when a new ticket is added
+  const prevTicketsCount = useRef(ticketsByList.length);
+  const shouldScrollToBottomRef = useRef(false);
+
+  useEffect(() => {
+    if (ticketsByList.length > prevTicketsCount.current) {
+      if (shouldScrollToBottomRef.current) {
+        ticketListRef.current?.scrollTo({
+          top: ticketListRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+        shouldScrollToBottomRef.current = false;
+      }
+    }
+    prevTicketsCount.current = ticketsByList.length;
+  }, [ticketsByList.length]);
 
   // Set up draggable for list
   useEffect(() => {
@@ -94,19 +170,24 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
       }),
       onDragStart: () => setIsDragging(true),
       onDrop: () => setIsDragging(false),
+      onGenerateDragPreview: ({ nativeSetDragImage }) => {
+        setCustomNativeDragPreview({
+          nativeSetDragImage,
+          render({ container }) {
+            const clone = element.cloneNode(true) as HTMLElement;
+            // Remove hover rings and fix height to avoid trailing whitespace
+            clone.classList.remove("hover:ring-1", "hover:ring-primary");
+            clone.style.height = "auto";
+            clone.style.maxHeight = "90vh";
+            clone.style.width = `${element.offsetWidth}px`;
+            clone.style.opacity = "0.9";
+            clone.style.boxShadow = "0px 15px 40px rgba(0,0,0,0.2)";
+            container.appendChild(clone);
+          },
+        });
+      },
     });
   }, [listId, index, isEditing]);
-
-  // Set up drop target for list reordering
-  useEffect(() => {
-    const element = listRef.current;
-    if (!element) return;
-
-    return dropTargetForElements({
-      element,
-      getData: () => ({ type: "list", listId, index }),
-    });
-  }, [listId, index]);
 
   const enableEditing = () => {
     setIsEditing(true);
@@ -117,7 +198,7 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
 
   const disableEditing = () => {
     setIsEditing(false);
-    reset({ title: list.title }); // Reset to original value of the list
+    reset({ title: list.title });
   };
 
   // Update List Mutation
@@ -128,7 +209,6 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
         payload: { id: list.id, title: newTitle },
       }),
     onSuccess: (newData) => {
-      // toast.success(`Renamed to "${newData.payload.title}"`);
       reset({ title: newData.payload.title });
       setIsEditing(false);
     },
@@ -173,13 +253,14 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
   return (
     <li
       ref={listRef}
-      className={`shrink-0 h-full w-[272px] select-none transition-opacity ${
-        isDragging ? "opacity-50" : ""
+      className={`shrink-0 w-[272px] select-none transition-opacity relative outline-none ring-0 rounded-lg ${
+        isDragging ? "opacity-30 h-fit" : "h-full"
       }`}
     >
-      <div className="w-full rounded-md bg-[#f1f2f4] dark:bg-popover dark:text-popover-foreground shadow-md pb-2">
+      <DropIndicator edge={closestEdge} gap={12} />
+      <div className="w-full flex flex-col rounded-md bg-[#f1f2f4] dark:bg-popover dark:text-popover-foreground shadow-md max-h-full">
         {/* List Header */}
-        <div className="pt-2 px-2 text-sm font-semibold flex justify-between items-start gap-x-2">
+        <div className="pt-2 px-2 text-sm font-semibold flex justify-between items-start gap-x-2 shrink-0">
           {isEditing ? (
             <form
               ref={formRef}
@@ -218,7 +299,6 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
             </div>
           )}
 
-          {/* List Actions Menu */}
           {!isEditing && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -248,12 +328,10 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
           )}
         </div>
 
-        {/* Ticket List */}
+        {/* Ticket List Area - scrollable */}
         <div
           ref={ticketListRef}
-          className={`flex flex-col mx-1 px-1 py-0.5 min-h-[20px] transition-colors ${
-            isDraggedOver ? "bg-primary/10 rounded" : ""
-          }`}
+          className={`flex-1 flex flex-col px-2 py-2 overflow-y-auto relative min-h-[4px]`}
         >
           {ticketsByList.map((ticket, idx) => (
             <Ticket
@@ -263,10 +341,18 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
               listId={listId}
             />
           ))}
+          <DropIndicator edge={ticketClosestEdge} gap={-12} />
         </div>
 
         {/* Add Ticket Form */}
-        <CreateTicketForm listId={listId} />
+        <div className="shrink-0 pb-2">
+          <CreateTicketForm
+            listId={listId}
+            onTicketCreate={() => {
+              shouldScrollToBottomRef.current = true;
+            }}
+          />
+        </div>
       </div>
     </li>
   );

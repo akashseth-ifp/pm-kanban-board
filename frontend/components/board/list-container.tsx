@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
 import useBoardOrderStore from "@/store/boardOrder.store";
 import useBoardDataStore from "@/store/boardData.store";
 import { BoardList } from "./board-list";
@@ -114,12 +115,55 @@ export const ListContainer = () => {
           const toListId = destData.listId as string;
           const fromIndex = sourceData.index as number;
 
+          // Get the edge where the drop occurred
+          const closestEdge = extractClosestEdge(destData);
+
           const targetTickets = ticketOrderByList[toListId] || [];
 
-          // Calculate destination index based on drop position
-          // For simplicity, we'll add to the end of the list
-          // You can enhance this with closestEdge from hitbox for more precise positioning
-          const toIndex = targetTickets.length;
+          let toIndex: number;
+
+          // If dropping on another ticket or on the list area
+          if (
+            destData.type === "ticket" ||
+            destData.type === "list-ticket-area"
+          ) {
+            const targetIndex =
+              destData.type === "ticket"
+                ? (destData.index as number)
+                : targetTickets.length;
+
+            if (destData.type === "ticket") {
+              if (fromListId === toListId) {
+                // Same list
+                if (fromIndex < targetIndex) {
+                  // Dragging down
+                  toIndex =
+                    closestEdge === "bottom" ? targetIndex : targetIndex - 1;
+                } else {
+                  // Dragging up
+                  toIndex =
+                    closestEdge === "bottom" ? targetIndex + 1 : targetIndex;
+                }
+              } else {
+                // Different list
+                toIndex =
+                  closestEdge === "bottom" ? targetIndex + 1 : targetIndex;
+              }
+            } else {
+              // Dropping on empty list area
+              toIndex = targetTickets.length;
+            }
+          } else {
+            // Dropping elsewhere (should be prevented by canDrop, but safety first)
+            return;
+          }
+
+          // Bound check for target index
+          if (toIndex < 0) toIndex = 0;
+          if (toIndex > targetTickets.length) toIndex = targetTickets.length;
+
+          // For same list moves, when we splice out and in, the target index might change
+          // Our store action updateTicketPosition handles this logic properly.
 
           // Calculate new position
           const newPosition = getDNDTicketPosition(targetTickets, toIndex);
@@ -132,6 +176,14 @@ export const ListContainer = () => {
             toIndex,
             newPosition,
           });
+
+          // Scroll the dropped ticket into view
+          setTimeout(() => {
+            const element = document.getElementById(`ticket-card-${ticketId}`);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+          }, 0);
         }
 
         // Handle list drop
@@ -139,11 +191,24 @@ export const ListContainer = () => {
           const listId = sourceData.listId as string;
           const fromIndex = sourceData.index as number;
 
-          // For list reordering, we need to determine the new index
-          // This is a simplified version - you can enhance with hitbox
-          const toIndex = destData.index as number;
+          // Get the edge where the drop occurred
+          const closestEdge = extractClosestEdge(destData);
+          const targetIndex = destData.index as number;
+
+          let toIndex: number;
+          if (fromIndex < targetIndex) {
+            // Dragging right
+            toIndex = closestEdge === "right" ? targetIndex : targetIndex - 1;
+          } else {
+            // Dragging left
+            toIndex = closestEdge === "right" ? targetIndex + 1 : targetIndex;
+          }
 
           if (fromIndex === toIndex) return;
+
+          // Bound check
+          if (toIndex < 0) toIndex = 0;
+          if (toIndex >= listOrder.length) toIndex = listOrder.length - 1;
 
           // Calculate new position
           const newListOrder = [...listOrder];
@@ -161,7 +226,7 @@ export const ListContainer = () => {
   }, [listOrder, ticketOrderByList, updateListPosition, updateTicketPosition]);
 
   return (
-    <ol className="flex h-full gap-x-3 overflow-x-auto p-4 select-none">
+    <ol className="flex h-full gap-x-3 overflow-x-auto overflow-y-hidden p-4 select-none items-start">
       {listOrder.map(({ id }, index) => (
         <BoardList key={id} index={index} listId={id} />
       ))}

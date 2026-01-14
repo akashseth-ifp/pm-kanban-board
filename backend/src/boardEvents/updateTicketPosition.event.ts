@@ -103,7 +103,7 @@ export const updateTicketPositionEvent = async (
       boardId,
       userId,
       version: eventResponse.version,
-      eventType,
+      eventType: "MOVE_TICKET",
       entityType: "Ticket",
       payload: eventResponse.payload,
     });
