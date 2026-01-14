@@ -170,9 +170,15 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
       }),
       onDragStart: () => setIsDragging(true),
       onDrop: () => setIsDragging(false),
-      onGenerateDragPreview: ({ nativeSetDragImage }) => {
+      onGenerateDragPreview: ({ nativeSetDragImage, location }) => {
         setCustomNativeDragPreview({
           nativeSetDragImage,
+          getOffset: ({ container }) => {
+            const rect = element.getBoundingClientRect();
+            const x = location.initial.input.clientX - rect.left;
+            const y = location.initial.input.clientY - rect.top;
+            return { x, y };
+          },
           render({ container }) {
             const clone = element.cloneNode(true) as HTMLElement;
             // Remove hover rings and fix height to avoid trailing whitespace
@@ -191,7 +197,11 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
             clone.style.borderRadius = "12px";
             clone.style.backgroundColor = "transparent";
             clone.style.boxShadow = "none";
-            clone.style.overflow = "hidden"; // Clip content to ensure radius is respected
+            clone.style.overflow = "hidden";
+            clone.style.margin = "0";
+            clone.style.transform = "none";
+            clone.style.top = "0";
+            clone.style.left = "0";
 
             // Apply styles to the actual list content container
             const listContent = clone.querySelector(
