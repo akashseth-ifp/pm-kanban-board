@@ -1,9 +1,10 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
 import useBoardOrderStore from "@/store/boardOrder.store";
 import useBoardDataStore from "@/store/boardData.store";
@@ -22,6 +23,7 @@ export const ListContainer = () => {
   const ticketOrderByList = useBoardOrderStore(
     (state) => state.ticketOrderByList
   );
+  const scrollableRef = useRef<HTMLOListElement>(null);
 
   // Update List Position Mutation
   const { mutate: updateListPosition } = useMutation({
@@ -225,8 +227,22 @@ export const ListContainer = () => {
     });
   }, [listOrder, ticketOrderByList, updateListPosition, updateTicketPosition]);
 
+  // Set up auto-scroll for the board (horizontal scrolling)
+  useEffect(() => {
+    const element = scrollableRef.current;
+    if (!element) return;
+    return autoScrollForElements({
+      element,
+      canScroll: ({ source }) =>
+        source.data.type === "list" || source.data.type === "ticket",
+    });
+  }, []);
+
   return (
-    <ol className="flex h-full gap-x-3 overflow-x-auto overflow-y-hidden p-4 select-none items-start">
+    <ol
+      ref={scrollableRef}
+      className="flex h-full gap-x-3 overflow-x-auto overflow-y-hidden p-4 select-none items-start"
+    >
       {listOrder.map(({ id }, index) => (
         <BoardList key={id} index={index} listId={id} />
       ))}

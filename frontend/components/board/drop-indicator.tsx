@@ -47,8 +47,8 @@ export const DropIndicator = ({
       positionStyles.bottom = `${offset}px`;
     }
   } else {
-    positionStyles.top = "4px";
-    positionStyles.bottom = "4px";
+    positionStyles.top = "0px";
+    positionStyles.bottom = "0px";
     if (edge === "left") {
       positionStyles.left = `${offset}px`;
     } else {
@@ -71,12 +71,16 @@ export const DropIndicator = ({
     dotStyles.transform = "translateY(-50%)";
   } else {
     dotStyles.left = "50%";
-    dotStyles.top = "-4px";
-    dotStyles.transform = "translateX(-50%)";
+    dotStyles.top = "50%";
+    dotStyles.transform = "translate(-50%, -50%)";
   }
 
   return (
-    <div style={positionStyles} className={className}>
+    <div
+      style={positionStyles}
+      className={className}
+      data-drop-indicator="true"
+    >
       <div style={dotStyles} />
     </div>
   );

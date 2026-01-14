@@ -177,11 +177,31 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
             const clone = element.cloneNode(true) as HTMLElement;
             // Remove hover rings and fix height to avoid trailing whitespace
             clone.classList.remove("hover:ring-1", "hover:ring-primary");
+
+            // Remove DropIndicator artifacts from the drag preview
+            const dropIndicators = clone.querySelectorAll(
+              '[data-drop-indicator="true"]'
+            );
+            dropIndicators.forEach((indicator) => indicator.remove());
+
             clone.style.height = "auto";
             clone.style.maxHeight = "90vh";
             clone.style.width = `${element.offsetWidth}px`;
-            clone.style.opacity = "0.9";
-            clone.style.boxShadow = "0px 15px 40px rgba(0,0,0,0.2)";
+            clone.style.opacity = "1";
+            clone.style.borderRadius = "12px";
+            clone.style.backgroundColor = "transparent";
+            clone.style.boxShadow = "none";
+            clone.style.overflow = "hidden"; // Clip content to ensure radius is respected
+
+            // Apply styles to the actual list content container
+            const listContent = clone.querySelector(
+              ".shadow-md"
+            ) as HTMLElement;
+            if (listContent) {
+              listContent.style.borderRadius = "12px";
+              listContent.style.boxShadow = "0px 15px 40px rgba(0,0,0,0.2)";
+            }
+
             container.appendChild(clone);
           },
         });
