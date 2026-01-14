@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { IconDots, IconTrash, IconEdit, IconX } from "@tabler/icons-react";
@@ -8,6 +8,10 @@ import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import {
+  dropTargetForElements,
+  draggable,
+} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { updateListAPI, deleteListAPI } from "@/clientAPI/listEventAPI";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +47,11 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
   );
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isDraggedOver, setIsDraggedOver] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const ticketListRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLLIElement>(null);
 
   const {
     register,
@@ -57,6 +65,48 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
       title: list.title,
     },
   });
+
+  // Set up drop target for tickets
+  useEffect(() => {
+    const element = ticketListRef.current;
+    if (!element) return;
+
+    return dropTargetForElements({
+      element,
+      getData: () => ({ listId }),
+      onDragEnter: () => setIsDraggedOver(true),
+      onDragLeave: () => setIsDraggedOver(false),
+      onDrop: () => setIsDraggedOver(false),
+    });
+  }, [listId]);
+
+  // Set up draggable for list
+  useEffect(() => {
+    const element = listRef.current;
+    if (!element || isEditing) return;
+
+    return draggable({
+      element,
+      getInitialData: () => ({
+        type: "list",
+        listId,
+        index,
+      }),
+      onDragStart: () => setIsDragging(true),
+      onDrop: () => setIsDragging(false),
+    });
+  }, [listId, index, isEditing]);
+
+  // Set up drop target for list reordering
+  useEffect(() => {
+    const element = listRef.current;
+    if (!element) return;
+
+    return dropTargetForElements({
+      element,
+      getData: () => ({ type: "list", listId, index }),
+    });
+  }, [listId, index]);
 
   const enableEditing = () => {
     setIsEditing(true);
@@ -121,7 +171,12 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
   };
 
   return (
-    <li className="shrink-0 h-full w-[272px] select-none">
+    <li
+      ref={listRef}
+      className={`shrink-0 h-full w-[272px] select-none transition-opacity ${
+        isDragging ? "opacity-50" : ""
+      }`}
+    >
       <div className="w-full rounded-md bg-[#f1f2f4] dark:bg-popover dark:text-popover-foreground shadow-md pb-2">
         {/* List Header */}
         <div className="pt-2 px-2 text-sm font-semibold flex justify-between items-start gap-x-2">
@@ -194,9 +249,19 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
         </div>
 
         {/* Ticket List */}
-        <div className="flex flex-col mx-1 px-1 py-0.5 min-h-[20px]">
-          {ticketsByList.map((ticket) => (
-            <Ticket key={ticket.id} ticketId={ticket.id} />
+        <div
+          ref={ticketListRef}
+          className={`flex flex-col mx-1 px-1 py-0.5 min-h-[20px] transition-colors ${
+            isDraggedOver ? "bg-primary/10 rounded" : ""
+          }`}
+        >
+          {ticketsByList.map((ticket, idx) => (
+            <Ticket
+              key={ticket.id}
+              ticketId={ticket.id}
+              index={idx}
+              listId={listId}
+            />
           ))}
         </div>
 

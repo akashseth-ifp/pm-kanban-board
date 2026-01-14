@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -19,7 +19,7 @@ import { useEventListener, useOnClickOutside } from "usehooks-ts";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-
+import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { updateTicketAPI, deleteTicketAPI } from "@/clientAPI/ticketEventAPI";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,6 +52,8 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
 
 interface TicketProps {
   ticketId: string;
+  index: number;
+  listId: string;
 }
 
 const formSchema = z.object({
@@ -60,12 +62,14 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export const Ticket = ({ ticketId }: TicketProps) => {
+export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
   const ticket = useBoardDataStore((state) => state.ticketsById[ticketId]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const ticketRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -79,6 +83,24 @@ export const Ticket = ({ ticketId }: TicketProps) => {
       title: ticket?.title || "",
     },
   });
+
+  // Set up drag and drop
+  useEffect(() => {
+    const element = ticketRef.current;
+    if (!element || isEditing) return;
+
+    return draggable({
+      element,
+      getInitialData: () => ({
+        type: "ticket",
+        ticketId,
+        listId,
+        index,
+      }),
+      onDragStart: () => setIsDragging(true),
+      onDrop: () => setIsDragging(false),
+    });
+  }, [ticketId, listId, index, isEditing]);
 
   const enableEditing = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -192,8 +214,11 @@ export const Ticket = ({ ticketId }: TicketProps) => {
   return (
     <>
       <div
+        ref={ticketRef}
         onClick={() => setIsModalOpen(true)}
-        className="group flex flex-col bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 mb-2 hover:ring-1 hover:ring-primary transition-all cursor-pointer space-y-3"
+        className={`group flex flex-col bg-white dark:bg-[#22272b] dark:text-popover-foreground rounded-md shadow-sm p-3 mb-2 hover:ring-1 hover:ring-primary transition-all cursor-grab active:cursor-grabbing space-y-3 ${
+          isDragging ? "opacity-50 rotate-2 scale-105" : ""
+        }`}
       >
         <div className="flex justify-between items-start">
           <div className="text-sm font-medium w-full truncate pr-1">

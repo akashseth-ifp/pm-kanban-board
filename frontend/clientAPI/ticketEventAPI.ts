@@ -12,6 +12,10 @@ import {
   DeleteTicketEvent,
   DeleteTicketEventResponse,
 } from "@backend/boardEvents/deleteTicket.event";
+import {
+  UpdateTicketPositionEvent,
+  UpdateTicketPositionEventResponse,
+} from "@backend/boardEvents/updateTicketPosition.event";
 
 export const addTicketAPI = async (
   data: Omit<AddTicketEvent, "eventType">
@@ -48,6 +52,20 @@ export const deleteTicketAPI = async (
     const resData = await fetchWithAuth(`${API_URL}`, {
       method: "POST",
       body: JSON.stringify({ eventType: "DELETE_TICKET", ...data }),
+    });
+    return resData;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateTicketPositionAPI = async (
+  data: Omit<UpdateTicketPositionEvent, "eventType">
+): Promise<UpdateTicketPositionEventResponse> => {
+  try {
+    const resData = await fetchWithAuth(`${API_URL}`, {
+      method: "POST",
+      body: JSON.stringify({ eventType: "UPDATE_TICKET_POSITION", ...data }),
     });
     return resData;
   } catch (error) {
