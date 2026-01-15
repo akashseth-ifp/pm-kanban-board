@@ -212,9 +212,8 @@ export const ListContainer = () => {
           if (toIndex < 0) toIndex = 0;
           if (toIndex >= listOrder.length) toIndex = listOrder.length - 1;
 
-          // Calculate new position
-          const newListOrder = [...listOrder];
-          const newPosition = getDNDListPosition(newListOrder, toIndex);
+          const newPosition = getDNDListPosition(toIndex);
+          console.log("List new position: ", newPosition);
 
           updateListPosition({
             listId,
@@ -243,8 +242,8 @@ export const ListContainer = () => {
       ref={scrollableRef}
       className="flex h-full gap-x-3 overflow-x-auto overflow-y-hidden p-4 select-none items-start"
     >
-      {listOrder.map(({ id }, index) => (
-        <BoardList key={id} index={index} listId={id} />
+      {listOrder.map(({ id }) => (
+        <BoardList key={id} listId={id} />
       ))}
       <div className="w-[272px] shrink-0">
         <CreateListForm />

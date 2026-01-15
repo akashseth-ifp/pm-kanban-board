@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -43,6 +43,7 @@ import useBoardDataStore from "@/store/boardData.store";
 import { Badge } from "@/components/ui/badge";
 import { EditTicketModal } from "./edit-ticket-modal";
 import { DropIndicator } from "./drop-indicator";
+import { getTicketIndex } from "@/utils/board-position";
 
 const PRIORITY_COLORS: Record<string, string> = {
   Critical: "bg-red-500",
@@ -62,7 +63,6 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
 
 interface TicketProps {
   ticketId: string;
-  index: number;
   listId: string;
 }
 
@@ -72,8 +72,9 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
+export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
   const ticket = useBoardDataStore((state) => state.ticketsById[ticketId]);
+  console.log("Rendering ticket : ", listId, ticketId, ticket.title);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -108,7 +109,7 @@ export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
         type: "ticket",
         ticketId,
         listId,
-        index,
+        index: getTicketIndex(listId, ticketId),
       }),
       onDragStart: () => setIsDragging(true),
       onDrop: () => setIsDragging(false),
@@ -138,7 +139,7 @@ export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
         });
       },
     });
-  }, [ticketId, listId, index, isEditing]);
+  }, [ticketId, listId, isEditing]);
 
   // Set up drop target for ticket reordering
   useEffect(() => {
@@ -149,7 +150,12 @@ export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
       element,
       canDrop: ({ source }) => source.data.type === "ticket",
       getData: ({ input, element }) => {
-        const data = { type: "ticket", ticketId, listId, index };
+        const data = {
+          type: "ticket",
+          ticketId,
+          listId,
+          index: getTicketIndex(listId, ticketId),
+        };
         return attachClosestEdge(data, {
           input,
           element,
@@ -167,7 +173,7 @@ export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
       onDragLeave: () => setClosestEdge(null),
       onDrop: () => setClosestEdge(null),
     });
-  }, [ticketId, listId, index]);
+  }, [ticketId, listId]);
 
   const enableEditing = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -363,4 +369,4 @@ export const Ticket = ({ ticketId, index, listId }: TicketProps) => {
       />
     </>
   );
-};
+});

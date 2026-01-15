@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { IconDots, IconTrash, IconEdit, IconX } from "@tabler/icons-react";
@@ -36,10 +36,10 @@ import { Ticket } from "./ticket";
 import { CreateTicketForm } from "./create-ticket-form";
 import useBoardOrderStore from "@/store/boardOrder.store";
 import { DropIndicator } from "./drop-indicator";
+import { getListIndex } from "@/utils/board-position";
 
 interface BoardListProps {
   listId: string;
-  index: number;
 }
 
 const formSchema = z.object({
@@ -48,9 +48,14 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export const BoardList = ({ listId, index }: BoardListProps) => {
+export const BoardList = memo(({ listId }: BoardListProps) => {
+  // useEffect(() => {
+  //   console.log("BoardList : ", listId, index);
+  // }, []);
+
   const params = useParams();
   const list = useBoardDataStore((state) => state.listsById[listId]);
+  console.log("BoardList : ", listId, list?.title);
   const ticketsByList = useBoardOrderStore(
     (state) => state.ticketOrderByList[listId]
   );
@@ -86,6 +91,7 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
       element,
       canDrop: ({ source }) => source.data.type === "list",
       getData: ({ input, element }) => {
+        const index = getListIndex(listId);
         const data = { type: "list", listId, index };
         return attachClosestEdge(data, {
           input,
@@ -104,7 +110,7 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
       onDragLeave: () => setClosestEdge(null),
       onDrop: () => setClosestEdge(null),
     });
-  }, [listId, index]);
+  }, [listId]);
 
   // Set up drop target for tickets within this list and auto-scroll
   useEffect(() => {
@@ -166,7 +172,7 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
       getInitialData: () => ({
         type: "list",
         listId,
-        index,
+        index: getListIndex(listId),
       }),
       onDragStart: () => setIsDragging(true),
       onDrop: () => setIsDragging(false),
@@ -217,7 +223,7 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
         });
       },
     });
-  }, [listId, index, isEditing]);
+  }, [listId, isEditing]);
 
   const enableEditing = () => {
     setIsEditing(true);
@@ -363,13 +369,8 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
           ref={ticketListRef}
           className={`flex-1 flex flex-col px-2 py-2 overflow-y-auto relative min-h-[4px]`}
         >
-          {ticketsByList.map((ticket, idx) => (
-            <Ticket
-              key={ticket.id}
-              ticketId={ticket.id}
-              index={idx}
-              listId={listId}
-            />
+          {ticketsByList.map((ticket) => (
+            <Ticket key={ticket.id} ticketId={ticket.id} listId={listId} />
           ))}
           <DropIndicator edge={ticketClosestEdge} gap={-12} />
         </div>
@@ -386,4 +387,4 @@ export const BoardList = ({ listId, index }: BoardListProps) => {
       </div>
     </li>
   );
-};
+});

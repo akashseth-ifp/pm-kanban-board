@@ -17,6 +17,8 @@ import { useIsOnline } from "@/hooks/useIsOnline";
 export default function BoardPage() {
   const params = useParams();
   const boardId = params.id as string;
+  const resetBoardData = useBoardDataStore((state) => state.reset);
+  const resetBoardOrder = useBoardOrderStore((state) => state.reset);
   const setBoard = useBoardDataStore((state) => state.setBoard);
   const board = useBoardDataStore((state) => state.boardData);
   const setBoardOrder = useBoardOrderStore((state) => state.setBoardOrder);
@@ -37,6 +39,8 @@ export default function BoardPage() {
 
     function onDisconnect() {
       console.log("Socket disconnected");
+      resetBoardData();
+      resetBoardOrder();
       setIsConnected(false);
     }
 
