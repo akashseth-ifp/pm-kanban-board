@@ -5,6 +5,7 @@ import { devtools } from "zustand/middleware";
 type BoardDataState = {
   boardId: string | null;
   boardVersion: number;
+  boardServerVersion: number;
   boardData: Board | null;
   listsById: Record<string, List>;
   ticketsById: Record<string, Ticket>;
@@ -13,6 +14,9 @@ type BoardDataState = {
 type BoardDataActions = {
   reset(): void;
   setVersion(version: number): void;
+  setServerVersion(version: number): void;
+  increaseVersion(): void;
+  decreaseVersion(): void;
   setBoard(payload: { board: Board; lists: List[]; tickets: Ticket[] }): void;
 
   /* Lists */
@@ -34,6 +38,7 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
     (set) => ({
       boardId: null,
       boardVersion: 0,
+      boardServerVersion: 0,
       boardData: null,
       listsById: {},
       ticketsById: {},
@@ -41,20 +46,37 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
         set({
           boardId: null,
           boardVersion: 0,
+          boardServerVersion: 0,
           boardData: null,
           listsById: {},
           ticketsById: {},
         }),
 
-      setVersion: (version) =>
+      setVersion: (version: number) =>
         set({
           boardVersion: version,
+        }),
+
+      increaseVersion: () =>
+        set((s) => ({
+          boardVersion: s.boardVersion + 1,
+        })),
+
+      decreaseVersion: () =>
+        set((s) => ({
+          boardVersion: s.boardVersion - 1,
+        })),
+
+      setServerVersion: (version: number) =>
+        set({
+          boardServerVersion: version,
         }),
 
       setBoard: ({ board, lists, tickets }) =>
         set({
           boardId: board.id,
           boardVersion: board.version,
+          boardServerVersion: board.version,
           boardData: board,
           listsById: Object.fromEntries(lists.map((l) => [l.id, l])),
           ticketsById: Object.fromEntries(tickets.map((c) => [c.id, c])),

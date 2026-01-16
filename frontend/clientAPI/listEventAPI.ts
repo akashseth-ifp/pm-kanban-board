@@ -13,9 +13,9 @@ import {
   DeleteListEventResponse,
 } from "@backend/boardEvents/deleteList.event";
 import {
-  UpdateListPositionEvent,
-  UpdateListPositionEventResponse,
-} from "@backend/boardEvents/updateListPosition.event";
+  MoveListEvent,
+  MoveListEventResponse,
+} from "@backend/boardEvents/moveList.event";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/event`;
 
@@ -61,13 +61,13 @@ export const deleteListAPI = async (
   }
 };
 
-export const updateListPositionAPI = async (
-  data: Omit<UpdateListPositionEvent, "eventType">
-): Promise<UpdateListPositionEventResponse> => {
+export const moveListAPI = async (
+  data: Omit<MoveListEvent, "eventType">
+): Promise<MoveListEventResponse> => {
   try {
     const resData = await fetchWithAuth(`${API_URL}`, {
       method: "POST",
-      body: JSON.stringify({ eventType: "UPDATE_LIST_POSITION", ...data }),
+      body: JSON.stringify({ eventType: "MOVE_LIST", ...data }),
     });
     return resData;
   } catch (error) {

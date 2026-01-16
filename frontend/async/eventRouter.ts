@@ -9,11 +9,13 @@ import { AddTicketEventResponse } from "@backend/boardEvents/addTicket.event";
 import { UpdateTicketEventResponse } from "@backend/boardEvents/updateTicket.event";
 import { DeleteTicketEventResponse } from "@backend/boardEvents/deleteTicket.event";
 import { toast } from "sonner";
+import { MoveListEventResponse } from "@backend/boardEvents/moveList.event";
 
 type Event =
   | AddListEventResponse
   | UpdateListEventResponse
   | DeleteListEventResponse
+  | MoveListEventResponse
   | UpdateBoardEventResponse
   | DeleteBoardEventResponse
   | AddTicketEventResponse
@@ -29,11 +31,21 @@ export function applyServerEvent(event: Event) {
     return;
   }
 
+  // don't run optimistic updates
+  if (useBoardDataStore.getState().boardVersion >= event.version) {
+    console.log("Optimistic update skipped");
+    return;
+  }
+
+  // Update the server version
+  useBoardDataStore.getState().setServerVersion(event.version);
+  // Update the client version
+  useBoardDataStore.getState().setVersion(event.version);
+
   switch (event.eventType) {
     case "ADD_LIST":
       const { payload: addListPayload } = event as AddListEventResponse;
       console.log("ADD_LIST payload:", addListPayload);
-      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().addList(addListPayload);
       useBoardOrderStore.getState().addList({
         id: addListPayload.id,
@@ -44,7 +56,6 @@ export function applyServerEvent(event: Event) {
     case "UPDATE_LIST":
       const { payload: updateListPayload } = event as UpdateListEventResponse;
       console.log("UPDATE_LIST payload:", updateListPayload);
-      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore
         .getState()
         .updateList(updateListPayload.id, updateListPayload);
@@ -54,21 +65,32 @@ export function applyServerEvent(event: Event) {
       const { payload: deleteListPayload } = event as DeleteListEventResponse;
       console.log("DELETE_LIST payload:", deleteListPayload);
       useBoardOrderStore.getState().deleteList(deleteListPayload.id);
-      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().deleteList(deleteListPayload.id);
+      break;
+
+    case "MOVE_LIST":
+      const { payload: moveListPayload } = event as MoveListEventResponse;
+
+      console.log("MOVE_LIST payload:", moveListPayload);
+      useBoardOrderStore
+        .getState()
+        .updateListPosition(
+          moveListPayload.id,
+          moveListPayload.fromIndex,
+          moveListPayload.toIndex,
+          moveListPayload.position
+        );
       break;
 
     case "UPDATE_BOARD":
       const { payload: updateBoardPayload } = event as UpdateBoardEventResponse;
       console.log("UPDATE_BOARD payload:", updateBoardPayload);
-      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().updateBoard(updateBoardPayload);
       break;
 
     case "ADD_TICKET":
       const { payload: addTicketPayload } = event as AddTicketEventResponse;
       console.log("ADD_TICKET payload:", addTicketPayload);
-      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().addTicket(addTicketPayload);
       useBoardOrderStore
         .getState()
@@ -82,7 +104,6 @@ export function applyServerEvent(event: Event) {
       const { payload: updateTicketPayload } =
         event as UpdateTicketEventResponse;
       console.log("UPDATE_TICKET payload:", updateTicketPayload);
-      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore
         .getState()
         .updateTicket(updateTicketPayload.id, updateTicketPayload);
@@ -98,7 +119,6 @@ export function applyServerEvent(event: Event) {
           deleteTicketPayload.id,
           (event as DeleteTicketEventResponse).listId
         );
-      useBoardDataStore.getState().setVersion(event.version);
       useBoardDataStore.getState().deleteTicket(deleteTicketPayload.id);
       break;
 

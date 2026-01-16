@@ -17,23 +17,28 @@ export const getAddTicketPosition = (listId: string) => {
  * Calculate new position for a list being dropped at a specific index
  * Position is calculated as the midpoint between the previous and next list
  */
-export const getDNDListPosition = (destinationIndex: number): number => {
+export const getDNDListPosition = (
+  leftIdx: number,
+  rightIdx: number
+): number => {
+  getDNDListPosition;
+  console.log("getDNDListPosition", leftIdx, rightIdx);
   const listOrder = useBoardOrderStore.getState().listOrder;
   // If dropping at the beginning
-  if (destinationIndex === 0) {
+  if (leftIdx === -1) {
     if (listOrder.length === 0) return BASE_POSITION;
     return listOrder[0].position / 2;
   }
 
   // If dropping at the end
-  if (destinationIndex >= listOrder.length) {
+  if (rightIdx === listOrder.length) {
     const lastPosition = listOrder[listOrder.length - 1]?.position || 0;
     return lastPosition + BASE_POSITION;
   }
 
   // Dropping in the middle - calculate midpoint
-  const prevPosition = listOrder[destinationIndex - 1].position;
-  const nextPosition = listOrder[destinationIndex].position;
+  const prevPosition = listOrder[leftIdx].position;
+  const nextPosition = listOrder[rightIdx].position;
   return (prevPosition + nextPosition) / 2;
 };
 

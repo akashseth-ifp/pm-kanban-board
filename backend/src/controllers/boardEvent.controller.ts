@@ -20,10 +20,6 @@ import {
   UpdateListEventResponse,
 } from "../boardEvents/updateList.event";
 import {
-  updateListPositionEvent,
-  UpdateListPositionEventResponse,
-} from "../boardEvents/updateListPosition.event";
-import {
   deleteListEvent,
   DeleteListEventResponse,
 } from "../boardEvents/deleteList.event";
@@ -44,6 +40,10 @@ import {
   DeleteTicketEventResponse,
 } from "../boardEvents/deleteTicket.event";
 import { getIO } from "../lib/socket";
+import {
+  MoveListEventResponse,
+  moveListEvent,
+} from "../boardEvents/moveList.event";
 
 export const boardEventPostHandler = async (
   req: Request,
@@ -65,7 +65,7 @@ export const boardEventPostHandler = async (
       | GetBoardEventResponse
       | AddListEventResponse
       | UpdateListEventResponse
-      | UpdateListPositionEventResponse
+      | MoveListEventResponse
       | DeleteListEventResponse
       | AddTicketEventResponse
       | UpdateTicketEventResponse
@@ -82,8 +82,8 @@ export const boardEventPostHandler = async (
       result = await addListEvent(req.body, userId);
     } else if (eventType === "UPDATE_LIST") {
       result = await updateListEvent(req.body, userId);
-    } else if (eventType === "UPDATE_LIST_POSITION") {
-      result = await updateListPositionEvent(req.body, userId);
+    } else if (eventType === "MOVE_LIST") {
+      result = await moveListEvent(req.body, userId);
     } else if (eventType === "DELETE_LIST") {
       result = await deleteListEvent(req.body, userId);
     } else if (eventType === "ADD_TICKET") {

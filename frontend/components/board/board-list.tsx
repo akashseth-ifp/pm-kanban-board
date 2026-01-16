@@ -55,7 +55,7 @@ export const BoardList = memo(({ listId }: BoardListProps) => {
 
   const params = useParams();
   const list = useBoardDataStore((state) => state.listsById[listId]);
-  console.log("BoardList : ", listId, list?.title);
+  // console.log("BoardList : ", listId, list?.title);
   const ticketsByList = useBoardOrderStore(
     (state) => state.ticketOrderByList[listId]
   );

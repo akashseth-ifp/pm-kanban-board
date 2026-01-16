@@ -46,12 +46,15 @@ export const getBoardsHandler = async (
 ): Promise<void> => {
   try {
     const userId = req.user!.id;
+    
     const boards = await db
-      .select()
+      .selectDistinct()
       .from(board)
-      .where(eq(board.userId, userId))
+      .innerJoin(boardMember, eq(board.id, boardMember.boardId))
+      .where(eq(boardMember.userId, userId))
       .orderBy(desc(board.createdAt));
-    res.json(boards);
+
+    res.json(boards.map((item) => item.boards));
   } catch (error) {
     req.log.error(`Get Boards Error: ${error}`);
     res.status(500).json({ message: "Internal Server Error" });

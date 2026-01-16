@@ -10,7 +10,7 @@ import { DeleteListEventSchema } from "../boardEvents/deleteList.event";
 import { AddTicketEventSchema } from "../boardEvents/addTicket.event";
 import { UpdateTicketEventSchema } from "../boardEvents/updateTicket.event";
 import { DeleteTicketEventSchema } from "../boardEvents/deleteTicket.event";
-import { UpdateListPositionEventSchema } from "../boardEvents/updateListPosition.event";
+import { MoveListEventSchema } from "../boardEvents/moveList.event";
 import { UpdateTicketPositionEventSchema } from "../boardEvents/updateTicketPosition.event";
 
 export const boardEventMiddleware = (
@@ -117,8 +117,8 @@ export const boardEventMiddleware = (
       );
     }
 
-    if (eventType === "UPDATE_LIST_POSITION") {
-      return validateResource(UpdateListPositionEventSchema)(
+    if (eventType === "MOVE_LIST") {
+      return validateResource(MoveListEventSchema)(
         req,
         res,
         (validationErr) => {

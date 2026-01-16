@@ -5,10 +5,10 @@ import { list, List } from "../schema/list.schema";
 import { board } from "../schema/board.schema";
 import { eq, sql } from "drizzle-orm";
 
-export const UpdateListPositionEventSchema = object({
+export const MoveListEventSchema = object({
   body: object({
-    eventType: string().refine((val) => val === "UPDATE_LIST_POSITION", {
-      message: "Event must be 'UPDATE_LIST_POSITION'",
+    eventType: string().refine((val) => val === "MOVE_LIST", {
+      message: "Event must be 'MOVE_LIST'",
     }),
     boardId: uuid({
       version: "v7",
@@ -19,33 +19,26 @@ export const UpdateListPositionEventSchema = object({
         version: "v7",
         message: "Invalid list ID",
       }),
+      fromIndex: number("From index must be a number"),
+      toIndex: number("To index must be a number"),
       position: number("Position must be a number"),
     }),
   }),
 });
 
-export type UpdateListPositionEvent = z.infer<
-  typeof UpdateListPositionEventSchema
->["body"];
+export type MoveListEvent = z.infer<typeof MoveListEventSchema>["body"];
 
-export type UpdateListPositionEventResponse = {
-  boardId: string;
+export type MoveListEventResponse = MoveListEvent & {
   userId: string;
   version: number;
-  eventType: string;
   entityType: string;
-  payload: {
-    id: string;
-    position: number;
-  };
 };
 
-export const updateListPositionEvent = async (
-  eventData: UpdateListPositionEvent,
+export const moveListEvent = async (
+  eventData: MoveListEvent,
   userId: string
-): Promise<UpdateListPositionEventResponse> => {
+): Promise<MoveListEventResponse> => {
   const {
-    eventType,
     boardId,
     payload: { id, position },
   } = eventData;
@@ -71,21 +64,15 @@ export const updateListPositionEvent = async (
       .returning({ newBoardVersion: board.version });
 
     const eventResponse = {
-      boardId,
+      ...eventData,
       userId,
       version: boardVersionInfo.newBoardVersion,
-      eventType,
       entityType: "List",
-      payload: {
-        id,
-        position,
-      },
     };
 
     // 3. Log the event to board_events table
     await tx.insert(boardEvent).values({
       ...eventResponse,
-      eventType: "MOVE_LIST",
     });
 
     return eventResponse;

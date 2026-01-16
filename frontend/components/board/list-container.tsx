@@ -14,7 +14,7 @@ import {
   getDNDListPosition,
   getDNDTicketPosition,
 } from "@/utils/board-position";
-import { updateListPositionAPI } from "@/clientAPI/listEventAPI";
+import { moveListAPI } from "@/clientAPI/listEventAPI";
 import { updateTicketPositionAPI } from "@/clientAPI/ticketEventAPI";
 
 export const ListContainer = () => {
@@ -43,16 +43,21 @@ export const ListContainer = () => {
           data.newPosition
         );
 
-      return updateListPositionAPI({
+      useBoardDataStore.getState().increaseVersion();
+
+      return moveListAPI({
         boardId: params.id as string,
         payload: {
           id: data.listId,
+          fromIndex: data.fromIndex,
+          toIndex: data.toIndex,
           position: data.newPosition,
         },
       });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to move list");
+      useBoardDataStore.getState().decreaseVersion();
     },
   });
 
@@ -109,6 +114,8 @@ export const ListContainer = () => {
 
         const sourceData = source.data;
         const destData = destination.data;
+        console.log("sourceData", sourceData);
+        console.log("destData", destData);
 
         // Handle ticket drop
         if (sourceData.type === "ticket") {
@@ -190,6 +197,8 @@ export const ListContainer = () => {
 
         // Handle list drop
         if (sourceData.type === "list") {
+          if (sourceData.index === destData.index) return;
+
           const listId = sourceData.listId as string;
           const fromIndex = sourceData.index as number;
 
@@ -206,13 +215,25 @@ export const ListContainer = () => {
             toIndex = closestEdge === "right" ? targetIndex + 1 : targetIndex;
           }
 
+          console.log("fromIndex : ", fromIndex);
+          console.log("toIndex : ", toIndex);
+
           if (fromIndex === toIndex) return;
 
           // Bound check
           if (toIndex < 0) toIndex = 0;
           if (toIndex >= listOrder.length) toIndex = listOrder.length - 1;
 
-          const newPosition = getDNDListPosition(toIndex);
+          let leftIdx: number;
+          let rightIdx: number;
+          if (closestEdge === "left") {
+            leftIdx = targetIndex - 1;
+            rightIdx = targetIndex;
+          } else {
+            leftIdx = targetIndex;
+            rightIdx = targetIndex + 1;
+          }
+          const newPosition = getDNDListPosition(leftIdx, rightIdx);
           console.log("List new position: ", newPosition);
 
           updateListPosition({
