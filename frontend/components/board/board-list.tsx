@@ -55,7 +55,7 @@ export const BoardList = memo(({ listId }: BoardListProps) => {
 
   const params = useParams();
   const list = useBoardDataStore((state) => state.listsById[listId]);
-  // console.log("BoardList : ", listId, list?.title);
+  console.log("BoardList : ", listId, list?.title);
   const ticketsByList = useBoardOrderStore(
     (state) => state.ticketOrderByList[listId]
   );
@@ -181,12 +181,14 @@ export const BoardList = memo(({ listId }: BoardListProps) => {
           nativeSetDragImage,
           getOffset: ({ container }) => {
             const rect = element.getBoundingClientRect();
+            console.log("rect", rect);
             const x = location.initial.input.clientX - rect.left;
             const y = location.initial.input.clientY - rect.top;
             return { x, y };
           },
           render({ container }) {
             const clone = element.cloneNode(true) as HTMLElement;
+            const rect = element.getBoundingClientRect();
             // Remove hover rings and fix height to avoid trailing whitespace
             clone.classList.remove("hover:ring-1", "hover:ring-primary");
 
@@ -197,7 +199,7 @@ export const BoardList = memo(({ listId }: BoardListProps) => {
             dropIndicators.forEach((indicator) => indicator.remove());
 
             clone.style.height = "auto";
-            clone.style.maxHeight = "90vh";
+            clone.style.maxHeight = `${rect.height}px`;
             clone.style.width = `${element.offsetWidth}px`;
             clone.style.opacity = "1";
             clone.style.borderRadius = "12px";
@@ -208,15 +210,6 @@ export const BoardList = memo(({ listId }: BoardListProps) => {
             clone.style.transform = "none";
             clone.style.top = "0";
             clone.style.left = "0";
-
-            // Apply styles to the actual list content container
-            const listContent = clone.querySelector(
-              ".shadow-md"
-            ) as HTMLElement;
-            if (listContent) {
-              listContent.style.borderRadius = "12px";
-              listContent.style.boxShadow = "0px 15px 40px rgba(0,0,0,0.2)";
-            }
 
             container.appendChild(clone);
           },
