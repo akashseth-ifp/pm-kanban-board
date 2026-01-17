@@ -11,7 +11,7 @@ import { AddTicketEventSchema } from "../boardEvents/addTicket.event";
 import { UpdateTicketEventSchema } from "../boardEvents/updateTicket.event";
 import { DeleteTicketEventSchema } from "../boardEvents/deleteTicket.event";
 import { MoveListEventSchema } from "../boardEvents/moveList.event";
-import { UpdateTicketPositionEventSchema } from "../boardEvents/updateTicketPosition.event";
+import { MoveTicketEventSchema } from "../boardEvents/moveTicket.event";
 
 export const boardEventMiddleware = (
   req: Request,
@@ -128,8 +128,8 @@ export const boardEventMiddleware = (
       );
     }
 
-    if (eventType === "UPDATE_TICKET_POSITION") {
-      return validateResource(UpdateTicketPositionEventSchema)(
+    if (eventType === "MOVE_TICKET") {
+      return validateResource(MoveTicketEventSchema)(
         req,
         res,
         (validationErr) => {

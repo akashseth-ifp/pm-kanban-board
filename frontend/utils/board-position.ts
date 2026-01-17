@@ -21,7 +21,6 @@ export const getDNDListPosition = (
   leftIdx: number,
   rightIdx: number
 ): number => {
-  getDNDListPosition;
   console.log("getDNDListPosition", leftIdx, rightIdx);
   const listOrder = useBoardOrderStore.getState().listOrder;
   // If dropping at the beginning
@@ -47,24 +46,27 @@ export const getDNDListPosition = (
  * Position is calculated as the midpoint between the previous and next ticket
  */
 export const getDNDTicketPosition = (
-  ticketOrder: { id: string; position: number }[],
-  destinationIndex: number
+  listId: string,
+  topIdx: number,
+  bottomIdx: number
 ): number => {
+  console.log("getDNDTicketPosition", listId, topIdx, bottomIdx);
+  const ticketOrder = useBoardOrderStore.getState().ticketOrderByList[listId];
   // If dropping at the beginning
-  if (destinationIndex === 0) {
-    if (ticketOrder.length === 0) return BASE_POSITION;
+  if (topIdx === -1) {
+    if (ticketOrder.length === 0) return BASE_POSITION - 1;
     return ticketOrder[0].position / 2;
   }
 
   // If dropping at the end
-  if (destinationIndex >= ticketOrder.length) {
+  if (bottomIdx === ticketOrder.length) {
     const lastPosition = ticketOrder[ticketOrder.length - 1]?.position || 0;
     return lastPosition + BASE_POSITION;
   }
 
   // Dropping in the middle - calculate midpoint
-  const prevPosition = ticketOrder[destinationIndex - 1].position;
-  const nextPosition = ticketOrder[destinationIndex].position;
+  const prevPosition = ticketOrder[topIdx].position;
+  const nextPosition = ticketOrder[bottomIdx].position;
   return (prevPosition + nextPosition) / 2;
 };
 

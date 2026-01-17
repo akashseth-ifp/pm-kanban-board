@@ -83,6 +83,8 @@ export const ListContainer = () => {
           data.newPosition
         );
 
+      useBoardDataStore.getState().increaseVersion();
+
       // Update ticket's listId in boardDataStore if it moved to a different list
       if (data.fromListId !== data.toListId) {
         useBoardDataStore.getState().updateTicket(data.ticketId, {
@@ -92,16 +94,19 @@ export const ListContainer = () => {
 
       return updateTicketPositionAPI({
         boardId: params.id as string,
-        listId: data.fromListId,
         payload: {
           id: data.ticketId,
+          fromListId: data.fromListId,
+          toListId: data.toListId,
+          fromIndex: data.fromIndex,
+          toIndex: data.toIndex,
           position: data.newPosition,
-          listId: data.toListId,
         },
       });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to move ticket");
+      useBoardDataStore.getState().decreaseVersion();
     },
   });
 
@@ -124,10 +129,12 @@ export const ListContainer = () => {
           const toListId = destData.listId as string;
           const fromIndex = sourceData.index as number;
 
+          // If the ticket is dropped in the same list and at the same position, return
+          if (fromListId === toListId && fromIndex === destData.index) return;
+
           // Get the edge where the drop occurred
           const closestEdge = extractClosestEdge(destData);
-
-          const targetTickets = ticketOrderByList[toListId] || [];
+          const targetIndex = destData.index as number;
 
           let toIndex: number;
 
@@ -136,11 +143,6 @@ export const ListContainer = () => {
             destData.type === "ticket" ||
             destData.type === "list-ticket-area"
           ) {
-            const targetIndex =
-              destData.type === "ticket"
-                ? (destData.index as number)
-                : targetTickets.length;
-
             if (destData.type === "ticket") {
               if (fromListId === toListId) {
                 // Same list
@@ -160,22 +162,32 @@ export const ListContainer = () => {
               }
             } else {
               // Dropping on empty list area
-              toIndex = targetTickets.length;
+              toIndex = 100000000;
             }
           } else {
             // Dropping elsewhere (should be prevented by canDrop, but safety first)
             return;
           }
 
-          // Bound check for target index
-          if (toIndex < 0) toIndex = 0;
-          if (toIndex > targetTickets.length) toIndex = targetTickets.length;
+          console.log("fromIndex", fromIndex);
+          console.log("toIndex", toIndex);
 
-          // For same list moves, when we splice out and in, the target index might change
-          // Our store action updateTicketPosition handles this logic properly.
+          // If the ticket is dropped in the same list and at the same position, return
+          if (fromListId === toListId && fromIndex === toIndex) return;
+
+          let topIdx: number;
+          let bottomIdx: number;
+          if (closestEdge === "top") {
+            topIdx = targetIndex - 1;
+            bottomIdx = targetIndex;
+          } else {
+            topIdx = targetIndex;
+            bottomIdx = targetIndex + 1;
+          }
 
           // Calculate new position
-          const newPosition = getDNDTicketPosition(targetTickets, toIndex);
+          const newPosition = getDNDTicketPosition(toListId, topIdx, bottomIdx);
+          console.log("newPosition", newPosition);
 
           updateTicketPosition({
             ticketId,
@@ -245,7 +257,7 @@ export const ListContainer = () => {
         }
       },
     });
-  }, [listOrder, ticketOrderByList, updateListPosition, updateTicketPosition]);
+  }, [listOrder, updateListPosition, updateTicketPosition]);
 
   // Set up auto-scroll for the board (horizontal scrolling)
   useEffect(() => {

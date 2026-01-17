@@ -32,10 +32,6 @@ import {
   UpdateTicketEventResponse,
 } from "../boardEvents/updateTicket.event";
 import {
-  updateTicketPositionEvent,
-  UpdateTicketPositionEventResponse,
-} from "../boardEvents/updateTicketPosition.event";
-import {
   deleteTicketEvent,
   DeleteTicketEventResponse,
 } from "../boardEvents/deleteTicket.event";
@@ -44,6 +40,10 @@ import {
   MoveListEventResponse,
   moveListEvent,
 } from "../boardEvents/moveList.event";
+import {
+  moveTicketEvent,
+  MoveTicketEventResponse,
+} from "../boardEvents/moveTicket.event";
 
 export const boardEventPostHandler = async (
   req: Request,
@@ -69,7 +69,7 @@ export const boardEventPostHandler = async (
       | DeleteListEventResponse
       | AddTicketEventResponse
       | UpdateTicketEventResponse
-      | UpdateTicketPositionEventResponse
+      | MoveTicketEventResponse
       | DeleteTicketEventResponse;
 
     if (eventType === "UPDATE_BOARD") {
@@ -90,8 +90,8 @@ export const boardEventPostHandler = async (
       result = await addTicketEvent(req.body, userId);
     } else if (eventType === "UPDATE_TICKET") {
       result = await updateTicketEvent(req.body, userId);
-    } else if (eventType === "UPDATE_TICKET_POSITION") {
-      result = await updateTicketPositionEvent(req.body, userId);
+    } else if (eventType === "MOVE_TICKET") {
+      result = await moveTicketEvent(req.body, userId);
     } else if (eventType === "DELETE_TICKET") {
       result = await deleteTicketEvent(req.body, userId);
     } else {

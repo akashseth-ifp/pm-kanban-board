@@ -49,10 +49,6 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export const BoardList = memo(({ listId }: BoardListProps) => {
-  // useEffect(() => {
-  //   console.log("BoardList : ", listId, index);
-  // }, []);
-
   const params = useParams();
   const list = useBoardDataStore((state) => state.listsById[listId]);
   console.log("BoardList : ", listId, list?.title);

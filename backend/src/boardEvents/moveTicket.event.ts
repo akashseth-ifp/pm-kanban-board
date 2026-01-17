@@ -5,61 +5,61 @@ import { ticket, Ticket } from "../schema/ticket.schema";
 import { board } from "../schema/board.schema";
 import { eq, sql } from "drizzle-orm";
 
-export const UpdateTicketPositionEventSchema = object({
+export const MoveTicketEventSchema = object({
   body: object({
-    eventType: string().refine((val) => val === "UPDATE_TICKET_POSITION", {
-      message: "Event must be 'UPDATE_TICKET_POSITION'",
+    eventType: string().refine((val) => val === "MOVE_TICKET", {
+      message: "Event must be 'MOVE_TICKET'",
     }),
     boardId: uuid({
       version: "v7",
       message: "Invalid board ID",
-    }),
-    listId: uuid({
-      version: "v7",
-      message: "Invalid list ID",
     }),
     payload: object({
       id: uuid({
         version: "v7",
         message: "Invalid ticket ID",
       }),
-      position: number("Position must be a number"),
-      listId: uuid({
+      fromListId: uuid({
         version: "v7",
-        message: "Invalid list ID",
+        message: "Invalid from list ID",
       }),
+      toListId: uuid({
+        version: "v7",
+        message: "Invalid to list ID",
+      }),
+      fromIndex: number("From index must be a number"),
+      toIndex: number("To index must be a number"),
+      position: number("Position must be a number"),
     }),
   }),
 });
 
-export type UpdateTicketPositionEvent = z.infer<
-  typeof UpdateTicketPositionEventSchema
->["body"];
+export type MoveTicketEvent = z.infer<typeof MoveTicketEventSchema>["body"];
 
-export type UpdateTicketPositionEventResponse = {
+export type MoveTicketEventResponse = {
   boardId: string;
   userId: string;
   version: number;
   eventType: string;
   entityType: string;
-  listId: string; // The new listId where the ticket is moved
-  fromListId?: string; // The old listId (if different from new listId)
   payload: {
     id: string;
+    fromListId: string;
+    toListId: string;
+    fromIndex: number;
+    toIndex: number;
     position: number;
-    listId: string;
   };
 };
 
-export const updateTicketPositionEvent = async (
-  eventData: UpdateTicketPositionEvent,
+export const moveTicketEvent = async (
+  eventData: MoveTicketEvent,
   userId: string
-): Promise<UpdateTicketPositionEventResponse> => {
+): Promise<MoveTicketEventResponse> => {
   const {
     eventType,
     boardId,
-    listId: oldListId,
-    payload: { id, position, listId: newListId },
+    payload: { id, fromListId, toListId, fromIndex, toIndex, position },
   } = eventData;
 
   // Use transaction to ensure all operations succeed or fail together
@@ -69,7 +69,7 @@ export const updateTicketPositionEvent = async (
       .update(ticket)
       .set({
         position,
-        listId: newListId,
+        listId: toListId,
         updatedAt: new Date(),
       })
       .where(eq(ticket.id, id));
@@ -84,28 +84,15 @@ export const updateTicketPositionEvent = async (
       .returning({ newBoardVersion: board.version });
 
     const eventResponse = {
-      boardId,
+      ...eventData,
       userId,
       version: boardVersionInfo.newBoardVersion,
-      eventType,
       entityType: "Ticket",
-      listId: newListId,
-      fromListId: oldListId !== newListId ? oldListId : undefined,
-      payload: {
-        id,
-        position,
-        listId: newListId,
-      },
     };
 
     // 3. Log the event to board_events table
     await tx.insert(boardEvent).values({
-      boardId,
-      userId,
-      version: eventResponse.version,
-      eventType: "MOVE_TICKET",
-      entityType: "Ticket",
-      payload: eventResponse.payload,
+      ...eventResponse,
     });
 
     return eventResponse;
