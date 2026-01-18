@@ -10,6 +10,8 @@ import { UpdateTicketEventResponse } from "@backend/boardEvents/updateTicket.eve
 import { DeleteTicketEventResponse } from "@backend/boardEvents/deleteTicket.event";
 import { toast } from "sonner";
 import { MoveListEventResponse } from "@backend/boardEvents/moveList.event";
+import { getBoardEventsAPI } from "@/clientAPI/boardAPI";
+import { MoveTicketEventResponse } from "@backend/boardEvents/moveTicket.event";
 
 type Event =
   | AddListEventResponse
@@ -20,7 +22,8 @@ type Event =
   | DeleteBoardEventResponse
   | AddTicketEventResponse
   | UpdateTicketEventResponse
-  | DeleteTicketEventResponse;
+  | DeleteTicketEventResponse
+  | MoveTicketEventResponse;
 
 export function applyServerEvent(event: Event) {
   console.log("Received socket event:", event);
@@ -37,6 +40,27 @@ export function applyServerEvent(event: Event) {
     return;
   }
 
+  if (useBoardDataStore.getState().boardVersion + 1 !== event.version) {
+    console.log("Reconciling events");
+    reconcileEvents();
+  } else {
+    eventHandler(event);
+  }
+
+  return "success";
+}
+
+export async function reconcileEvents() {
+  const boardId = useBoardDataStore.getState().boardId;
+  const version = useBoardDataStore.getState().boardVersion;
+  const boardEvents = await getBoardEventsAPI(boardId!, version);
+
+  boardEvents.forEach((event: Event) => {
+    eventHandler(event);
+  });
+}
+
+function eventHandler(event: Event) {
   // Update the server version
   useBoardDataStore.getState().setServerVersion(event.version);
   // Update the client version
@@ -120,6 +144,21 @@ export function applyServerEvent(event: Event) {
           (event as DeleteTicketEventResponse).listId
         );
       useBoardDataStore.getState().deleteTicket(deleteTicketPayload.id);
+      break;
+
+    case "MOVE_TICKET":
+      const { payload: moveTicketPayload } = event as MoveTicketEventResponse;
+      console.log("MOVE_TICKET payload:", moveTicketPayload);
+      useBoardOrderStore
+        .getState()
+        .updateTicketPosition(
+          moveTicketPayload.id,
+          moveTicketPayload.fromListId,
+          moveTicketPayload.toListId,
+          moveTicketPayload.fromIndex,
+          moveTicketPayload.toIndex,
+          moveTicketPayload.position
+        );
       break;
 
     case "DELETE_BOARD":

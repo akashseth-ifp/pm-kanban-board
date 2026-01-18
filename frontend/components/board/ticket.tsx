@@ -74,7 +74,8 @@ type FormData = z.infer<typeof formSchema>;
 
 export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
   const ticket = useBoardDataStore((state) => state.ticketsById[ticketId]);
-  console.log("Rendering ticket : ", listId, ticketId, ticket.title);
+
+  console.log("Rendering ticket : ", listId, ticketId, ticket?.title);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

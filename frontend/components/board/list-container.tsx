@@ -16,6 +16,8 @@ import {
 } from "@/utils/board-position";
 import { moveListAPI } from "@/clientAPI/listEventAPI";
 import { updateTicketPositionAPI } from "@/clientAPI/ticketEventAPI";
+import { MoveTicketEvent } from "@backend/boardEvents/moveTicket.event";
+import { MoveListEvent } from "@backend/boardEvents/moveList.event";
 
 export const ListContainer = () => {
   const params = useParams();
@@ -27,33 +29,27 @@ export const ListContainer = () => {
 
   // Update List Position Mutation
   const { mutate: updateListPosition } = useMutation({
-    mutationFn: (data: {
-      listId: string;
-      fromIndex: number;
-      toIndex: number;
-      newPosition: number;
-    }) => {
+    networkMode: "offlineFirst",
+    retry: 3,
+    mutationKey: ["updateListPosition"],
+    mutationFn: (data: MoveListEvent["payload"]) => {
+      return moveListAPI({
+        boardId: params.id as string,
+        payload: data,
+      });
+    },
+    onMutate: (data: MoveListEvent["payload"]) => {
       // Optimistically update the store
       useBoardOrderStore
         .getState()
         .updateListPosition(
-          data.listId,
+          data.id,
           data.fromIndex,
           data.toIndex,
-          data.newPosition
+          data.position
         );
 
       useBoardDataStore.getState().increaseVersion();
-
-      return moveListAPI({
-        boardId: params.id as string,
-        payload: {
-          id: data.listId,
-          fromIndex: data.fromIndex,
-          toIndex: data.toIndex,
-          position: data.newPosition,
-        },
-      });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to move list");
@@ -63,46 +59,36 @@ export const ListContainer = () => {
 
   // Update Ticket Position Mutation
   const { mutate: updateTicketPosition } = useMutation({
-    mutationFn: (data: {
-      ticketId: string;
-      fromListId: string;
-      toListId: string;
-      fromIndex: number;
-      toIndex: number;
-      newPosition: number;
-    }) => {
+    networkMode: "offlineFirst",
+    mutationKey: ["updateTicketPosition"],
+    retry: 3,
+    mutationFn: (data: MoveTicketEvent["payload"]) => {
+      return updateTicketPositionAPI({
+        boardId: params.id as string,
+        payload: data,
+      });
+    },
+    onMutate: (data: MoveTicketEvent["payload"]) => {
       // Optimistically update the store
       useBoardOrderStore
         .getState()
         .updateTicketPosition(
-          data.ticketId,
+          data.id,
           data.fromListId,
           data.toListId,
           data.fromIndex,
           data.toIndex,
-          data.newPosition
+          data.position
         );
 
       useBoardDataStore.getState().increaseVersion();
 
       // Update ticket's listId in boardDataStore if it moved to a different list
       if (data.fromListId !== data.toListId) {
-        useBoardDataStore.getState().updateTicket(data.ticketId, {
+        useBoardDataStore.getState().updateTicket(data.id, {
           listId: data.toListId,
         });
       }
-
-      return updateTicketPositionAPI({
-        boardId: params.id as string,
-        payload: {
-          id: data.ticketId,
-          fromListId: data.fromListId,
-          toListId: data.toListId,
-          fromIndex: data.fromIndex,
-          toIndex: data.toIndex,
-          position: data.newPosition,
-        },
-      });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to move ticket");
@@ -195,12 +181,12 @@ export const ListContainer = () => {
           console.log("newPosition", newPosition);
 
           updateTicketPosition({
-            ticketId,
+            id: ticketId,
             fromListId,
             toListId,
             fromIndex,
             toIndex,
-            newPosition,
+            position: newPosition,
           });
 
           // Scroll the dropped ticket into view
@@ -254,10 +240,10 @@ export const ListContainer = () => {
           console.log("List new position: ", newPosition);
 
           updateListPosition({
-            listId,
+            id: listId,
             fromIndex,
             toIndex,
-            newPosition,
+            position: newPosition,
           });
         }
       },

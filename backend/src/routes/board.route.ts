@@ -1,12 +1,17 @@
 import express from "express";
 import { authMiddleware } from "../middleware/auth.middleware";
-import { getBoardsHandler } from "../controllers/board.controller";
+import {
+  getBoardEventsHandler,
+  getBoardsHandler,
+} from "../controllers/board.controller";
 import {
   createBoardHandler,
   getBoardHandler,
 } from "../controllers/board.controller";
 import { validateResource } from "../middleware/validateResource.middleware";
 import { createBoardSchema, getBoardSchema } from "../schema/board.schema";
+import { getBoardEventsSchema } from "../schema/board-events.schema";
+import { authorizeResource } from "../middleware/authorize.middleware";
 const router: express.Router = express.Router();
 
 // Apply auth middleware to all routes
@@ -18,5 +23,13 @@ router.get("/", getBoardsHandler);
 router.post("/", validateResource(createBoardSchema), createBoardHandler);
 
 router.get("/:boardId", validateResource(getBoardSchema), getBoardHandler);
+
+// Get all the events related to a board from board-events table
+router.get(
+  "/:boardId/events",
+  authorizeResource("Viewer"),
+  validateResource(getBoardEventsSchema),
+  getBoardEventsHandler
+);
 
 export default router;

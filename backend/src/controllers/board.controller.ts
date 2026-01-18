@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { db } from "../db";
 import { board } from "../schema/board.schema";
 import { boardMember } from "../schema/board-member.schema";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, and, gt } from "drizzle-orm";
 import { list } from "../schema";
+import { boardEvent } from "../schema/board-events.schema";
 
 export const createBoardHandler = async (
   req: Request,
@@ -46,7 +47,7 @@ export const getBoardsHandler = async (
 ): Promise<void> => {
   try {
     const userId = req.user!.id;
-    
+
     const boards = await db
       .selectDistinct()
       .from(board)
@@ -65,64 +66,58 @@ export const getBoardHandler = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { boardId } = req.params;
-  const [foundBoard] = await db
-    .select()
-    .from(board)
-    .where(eq(board.id, boardId));
-
-  if (!foundBoard) {
-    throw new Error("Board not found");
-  }
-
-  // fectch all the list for the board sorted by position
-  const foundLists = await db
-    .select()
-    .from(list)
-    .where(eq(list.boardId, boardId))
-    .orderBy(asc(list.position));
-
-  res.json({
-    board: foundBoard,
-    lists: foundLists,
-    tickets: [],
-  });
-};
-
-export const updateBoardHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { boardId } = req.params;
+    const [foundBoard] = await db
+      .select()
+      .from(board)
+      .where(eq(board.id, boardId));
 
-    const [updatedBoard] = await db
-      .update(board)
-      .set({
-        ...req.body,
-        updatedAt: new Date(),
-      })
-      .where(eq(board.id, id))
-      .returning();
+    if (!foundBoard) {
+      throw new Error("Board not found");
+    }
 
-    res.json(updatedBoard);
+    // fectch all the list for the board sorted by position
+    const foundLists = await db
+      .select()
+      .from(list)
+      .where(eq(list.boardId, boardId))
+      .orderBy(asc(list.position));
+
+    res.json({
+      board: foundBoard,
+      lists: foundLists,
+      tickets: [],
+    });
   } catch (error) {
-    req.log.error(`Update Board Error: ${error}`);
+    req.log.error(`Get Board Error: ${error}`);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-export const deleteBoardHandler = async (
+export const getBoardEventsHandler = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { boardId } = req.params;
 
-    await db.delete(board).where(eq(board.id, id));
-    res.json({ message: "Board deleted successfully" });
+    const fromVersion = Number(req.query.from_version) || 0;
+
+    const events = await db
+      .select()
+      .from(boardEvent)
+      .where(
+        and(
+          eq(boardEvent.boardId, boardId as string),
+          gt(boardEvent.version, Number(fromVersion))
+        )
+      )
+      .orderBy(asc(boardEvent.version));
+
+    res.json(events);
   } catch (error) {
-    req.log.error(`Delete Board Error: ${error}`);
+    req.log.error(`Get Board Events Error: ${error}`);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

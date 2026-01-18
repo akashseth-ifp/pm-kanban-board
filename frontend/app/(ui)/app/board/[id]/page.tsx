@@ -5,7 +5,7 @@ import { getBoardAPI } from "@/clientAPI/boardEventAPI";
 import { BoardContainer } from "@/components/board/board-container";
 import { BoardHeader } from "@/components/board/board-header";
 import { ListContainer } from "@/components/board/list-container";
-import { applyServerEvent } from "@/async/eventRouter";
+import { applyServerEvent, reconcileEvents } from "@/async/eventRouter";
 import { socket } from "@/async/socket";
 import { useParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -13,7 +13,6 @@ import useBoardDataStore from "@/store/boardData.store";
 import useBoardOrderStore from "@/store/boardOrder.store";
 import { toast } from "sonner";
 import { useIsOnline } from "@/hooks/useIsOnline";
-
 export default function BoardPage() {
   const params = useParams();
   const boardId = params.id as string;
@@ -32,15 +31,13 @@ export default function BoardPage() {
     socket.connect();
 
     function onConnect() {
-      console.log("Socket connected, joining board:", boardId);
+      console.log("Socket connected, joining board:", boardId, board);
       setIsConnected(true);
       socket.emit("join-board", boardId);
     }
 
     function onDisconnect() {
       console.log("Socket disconnected");
-      resetBoardData();
-      resetBoardOrder();
       setIsConnected(false);
     }
 
@@ -58,13 +55,15 @@ export default function BoardPage() {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("boardEvent", applyServerEvent);
+      resetBoardData();
+      resetBoardOrder();
     };
   }, [boardId]); // Re-run if the boardId changes
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["board", boardId],
     queryFn: () => getBoardAPI({ boardId }),
-    staleTime: 0,
+    staleTime: Infinity,
     enabled: !!boardId,
   });
 
@@ -79,6 +78,9 @@ export default function BoardPage() {
   // Sync state with hook and socket
   useEffect(() => {
     setIsConnected(socket.connected && isOnline);
+    if (isOnline && board) {
+      reconcileEvents();
+    }
   }, [isOnline]);
 
   useEffect(() => {
