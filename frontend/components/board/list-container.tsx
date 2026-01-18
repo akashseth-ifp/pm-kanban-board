@@ -134,7 +134,7 @@ export const ListContainer = () => {
 
           // Get the edge where the drop occurred
           const closestEdge = extractClosestEdge(destData);
-          const targetIndex = destData.index as number;
+          const targetIndex = (destData.index as number) || 0;
 
           let toIndex: number;
 
@@ -162,7 +162,7 @@ export const ListContainer = () => {
               }
             } else {
               // Dropping on empty list area
-              toIndex = 100000000;
+              toIndex = 0;
             }
           } else {
             // Dropping elsewhere (should be prevented by canDrop, but safety first)
@@ -177,12 +177,17 @@ export const ListContainer = () => {
 
           let topIdx: number;
           let bottomIdx: number;
-          if (closestEdge === "top") {
-            topIdx = targetIndex - 1;
-            bottomIdx = targetIndex;
+          if (destData.type === "ticket") {
+            if (closestEdge === "top") {
+              topIdx = targetIndex - 1;
+              bottomIdx = targetIndex;
+            } else {
+              topIdx = targetIndex;
+              bottomIdx = targetIndex + 1;
+            }
           } else {
-            topIdx = targetIndex;
-            bottomIdx = targetIndex + 1;
+            topIdx = -1;
+            bottomIdx = 0;
           }
 
           // Calculate new position

@@ -52,6 +52,7 @@ export const getDNDTicketPosition = (
 ): number => {
   console.log("getDNDTicketPosition", listId, topIdx, bottomIdx);
   const ticketOrder = useBoardOrderStore.getState().ticketOrderByList[listId];
+
   // If dropping at the beginning
   if (topIdx === -1) {
     if (ticketOrder.length === 0) return BASE_POSITION - 1;
