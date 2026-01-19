@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, QueryClient } from "@tanstack/react-query";
 import { getBoardAPI } from "@/clientAPI/boardEventAPI";
 import { BoardContainer } from "@/components/board/board-container";
 import { BoardHeader } from "@/components/board/board-header";
@@ -21,6 +21,7 @@ export default function BoardPage() {
   const setBoard = useBoardDataStore((state) => state.setBoard);
   const board = useBoardDataStore((state) => state.boardData);
   const setBoardOrder = useBoardOrderStore((state) => state.setBoardOrder);
+  const queryClient = new QueryClient();
 
   const isOnline = useIsOnline();
   const [isConnected, setIsConnected] = useState(socket.connected && isOnline);
@@ -78,9 +79,32 @@ export default function BoardPage() {
   // Sync state with hook and socket
   useEffect(() => {
     setIsConnected(socket.connected && isOnline);
-    if (isOnline && board) {
-      reconcileEvents();
-    }
+    if (!isOnline || !board) return;
+
+    const syncState = async () => {
+      // 1. Force Resume
+      await queryClient.resumePausedMutations();
+
+      // 2. STRICTOR WAIT: Ensure no mutations are even in 'loading' or 'pending'
+      // We poll until the total mutation count is 0
+      await new Promise<void>((resolve) => {
+        const check = () => {
+          const isBusy = queryClient.isMutating() > 0;
+          if (!isBusy) resolve();
+          else setTimeout(check, 200);
+        };
+        check();
+      });
+
+      // 3. DATABASE SETTLE TIME: Add a small delay (100-200ms)
+      // This allows the DB transactions to fully commit before we fetch.
+      await new Promise((r) => setTimeout(r, 200));
+
+      console.log("System Idle. Reconciling...");
+      await reconcileEvents();
+    };
+
+    syncState();
   }, [isOnline]);
 
   useEffect(() => {

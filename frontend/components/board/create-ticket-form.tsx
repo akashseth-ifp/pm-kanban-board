@@ -70,7 +70,7 @@ export const CreateTicketForm = ({
           position: getAddTicketPosition(listId),
         },
       }),
-    onMutate: () => {
+    onSuccess: () => {
       disableEditing();
     },
     onError: (error: any, variables) => {

@@ -22,16 +22,10 @@ import { MoveListEvent } from "@backend/boardEvents/moveList.event";
 export const ListContainer = () => {
   const params = useParams();
   const listOrder = useBoardOrderStore((state) => state.listOrder);
-  const ticketOrderByList = useBoardOrderStore(
-    (state) => state.ticketOrderByList
-  );
   const scrollableRef = useRef<HTMLOListElement>(null);
 
   // Update List Position Mutation
   const { mutate: updateListPosition } = useMutation({
-    networkMode: "offlineFirst",
-    retry: 3,
-    mutationKey: ["updateListPosition"],
     mutationFn: (data: MoveListEvent["payload"]) => {
       return moveListAPI({
         boardId: params.id as string,
@@ -59,9 +53,6 @@ export const ListContainer = () => {
 
   // Update Ticket Position Mutation
   const { mutate: updateTicketPosition } = useMutation({
-    networkMode: "offlineFirst",
-    mutationKey: ["updateTicketPosition"],
-    retry: 3,
     mutationFn: (data: MoveTicketEvent["payload"]) => {
       return updateTicketPositionAPI({
         boardId: params.id as string,
