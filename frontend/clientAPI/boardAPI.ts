@@ -30,3 +30,17 @@ export const getBoardEventsAPI = async (
     `${API_URL}/${boardId}/events?from_version=${fromVersion}`
   );
 };
+
+export const inviteUserAPI = async (
+  boardId: string,
+  email: string,
+  role: string
+): Promise<void> => {
+  return fetchWithAuth(`${API_URL}/${boardId}/invite`, {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      role,
+    }),
+  });
+};

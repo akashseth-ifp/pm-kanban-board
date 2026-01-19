@@ -28,12 +28,12 @@ type Role = keyof typeof ROLE_HIERARCHY;
 export const authorizeResource = (minRole: Role) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Get boardId from event payload
-      const { boardId } = req.body || req.params;
+      // Get boardId from body (events) or params (normal routes)
+      const boardId = req.body?.boardId || req.params.boardId;
 
       if (!boardId) {
         return res.status(400).json({
-          message: "Board ID is required in body.",
+          message: "Board ID is required in body or params.",
         });
       }
 

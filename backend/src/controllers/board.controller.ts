@@ -5,6 +5,8 @@ import { boardMember } from "../schema/board-member.schema";
 import { eq, desc, asc, and, gt } from "drizzle-orm";
 import { list } from "../schema";
 import { boardEvent } from "../schema/board-events.schema";
+import { generateInviteToken } from "../utils/util";
+import { Resend } from "resend";
 
 export const createBoardHandler = async (
   req: Request,
@@ -116,6 +118,58 @@ export const getBoardEventsHandler = async (
       .orderBy(asc(boardEvent.version));
 
     res.json(events);
+  } catch (error) {
+    req.log.error(`Get Board Events Error: ${error}`);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const inviteUserHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { boardId } = req.params;
+    const { id: invitedBy } = req.user!;
+    const { email, role } = req.body;
+
+    const [foundBoard] = await db
+      .select()
+      .from(board)
+      .where(eq(board.id, boardId));
+
+    if (!foundBoard) {
+      throw new Error("Board not found");
+    }
+
+    const inviteToken = generateInviteToken(email);
+    const inviteLink = `http://localhost:3000/invite?token=${inviteToken}`;
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { data, error } = await resend.emails.send({
+      from: "Kanban board <onboarding@resend.dev>",
+      to: [email],
+      subject: `You have been invited to join ${foundBoard.title}`,
+      html: `<strong>Click <a href="${inviteLink}">here</a> to accept the invitation</strong>`,
+    });
+
+    if (error) {
+      return console.error({ error });
+    }
+
+    console.log({ data });
+
+    await db.insert(boardMember).values({
+      boardId,
+      userId: invitedBy,
+      role: role,
+      status: "Pending",
+      email,
+      invitedBy,
+      inviteToken,
+    });
+
+    res.status(201).json({ message: "User invited successfully" });
   } catch (error) {
     req.log.error(`Get Board Events Error: ${error}`);
     res.status(500).json({ message: "Internal Server Error" });

@@ -71,6 +71,27 @@
       "when": 1768562590515,
       "tag": "0009_careful_the_watchers",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1768822532145,
+      "tag": "0010_colossal_electro",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1768822662462,
+      "tag": "0011_grey_shard",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1768822916584,
+      "tag": "0012_naive_blockbuster",
+      "breakpoints": true
     }
   ]
 }
