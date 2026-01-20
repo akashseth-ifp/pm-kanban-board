@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useEventListener, useOnClickOutside } from "usehooks-ts";
+import { useEventListener, useClickOutside } from "@mantine/hooks";
 import { useParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -23,7 +23,6 @@ type FormData = z.infer<typeof formSchema>;
 
 export const CreateListForm = () => {
   const params = useParams();
-  const formRef = useRef<HTMLFormElement>(null);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -76,7 +75,7 @@ export const CreateListForm = () => {
   };
 
   useEventListener("keydown", onKeyDown);
-  useOnClickOutside(formRef as React.RefObject<HTMLElement>, disableEditing);
+  const formRef = useClickOutside(disableEditing);
 
   const onSubmit = (formData: FormData) => {
     mutate(formData);

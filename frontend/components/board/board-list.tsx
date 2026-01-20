@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, memo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { IconDots, IconTrash, IconEdit, IconX } from "@tabler/icons-react";
-import { useEventListener, useOnClickOutside } from "usehooks-ts";
+import { useEventListener, useClickOutside } from "@mantine/hooks";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -60,7 +60,6 @@ export const BoardList = memo(({ listId }: BoardListProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
 
-  const formRef = useRef<HTMLFormElement>(null);
   const ticketListRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLLIElement>(null);
   const [ticketClosestEdge, setTicketClosestEdge] = useState<Edge | null>(null);
@@ -265,7 +264,7 @@ export const BoardList = memo(({ listId }: BoardListProps) => {
   };
 
   useEventListener("keydown", onKeyDown);
-  useOnClickOutside(formRef as React.RefObject<HTMLElement>, disableEditing);
+  const formRef = useClickOutside(disableEditing);
 
   const onSubmit = (data: FormData) => {
     if (data.title === list.title) {

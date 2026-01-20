@@ -15,7 +15,7 @@ import {
   IconCheck,
   IconArchive,
 } from "@tabler/icons-react";
-import { useEventListener, useOnClickOutside } from "usehooks-ts";
+import { useEventListener, useClickOutside } from "@mantine/hooks";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -82,7 +82,6 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
 
-  const formRef = useRef<HTMLFormElement>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
   const dropTargetRef = useRef<HTMLDivElement>(null);
 
@@ -227,7 +226,7 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
   };
 
   useEventListener("keydown", onKeyDown);
-  useOnClickOutside(formRef as React.RefObject<HTMLElement>, disableEditing);
+  const formRef = useClickOutside(disableEditing);
 
   const onSubmit = (data: FormData) => {
     if (!ticket || data.title === ticket.title) {
