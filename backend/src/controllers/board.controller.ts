@@ -6,7 +6,7 @@ import { eq, desc, asc, and, gt } from "drizzle-orm";
 import { list } from "../schema";
 import { boardEvent } from "../schema/board-events.schema";
 import { generateInviteToken } from "../utils/util";
-import { Resend } from "resend";
+import { sendBoardInviteMail } from "../utils/board-invite-mail";
 
 export const createBoardHandler = async (
   req: Request,
@@ -146,21 +146,13 @@ export const inviteUserHandler = async (
     }
 
     const inviteToken = generateInviteToken(email);
-    const inviteLink = `http://localhost:3000/invite?token=${inviteToken}`;
-
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const { data, error } = await resend.emails.send({
-      from: "Kanban board <onboarding@resend.dev>",
-      to: [email],
-      subject: `You have been invited to join ${foundBoard.title}`,
-      html: `<strong>Click <a href="${inviteLink}">here</a> to accept the invitation</strong>`,
+    const inviteMailResponse = await sendBoardInviteMail({
+      email,
+      inviteToken,
+      title: foundBoard.title,
     });
 
-    if (error) {
-      return console.error({ error });
-    }
-
-    console.log({ data });
+    res.log.info(`inviteMailResponse: ${inviteMailResponse}`);
 
     await db.insert(boardMember).values({
       boardId,
