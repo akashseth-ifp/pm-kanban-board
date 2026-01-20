@@ -9,8 +9,6 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
       credentials: "include", // Important for sending cookies
     });
 
-    console.log("res : ", res);
-
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.message || "An error occurred");

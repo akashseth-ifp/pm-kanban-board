@@ -13,6 +13,8 @@ import useBoardDataStore from "@/store/boardData.store";
 import useBoardOrderStore from "@/store/boardOrder.store";
 import { toast } from "sonner";
 import { useIsOnline } from "@/hooks/useIsOnline";
+import { useTabActive } from "@/hooks/useTabActive";
+
 export default function BoardPage() {
   const params = useParams();
   const boardId = params.id as string;
@@ -24,6 +26,8 @@ export default function BoardPage() {
   const queryClient = new QueryClient();
 
   const isOnline = useIsOnline();
+  const isFocused = useTabActive();
+  console.log("useTabActive -------------- ", isFocused);
   const [isConnected, setIsConnected] = useState(socket.connected && isOnline);
   const isInitialConnection = useRef(true);
 
@@ -76,36 +80,49 @@ export default function BoardPage() {
     }
   }, [data]);
 
+  const isSyncing = useRef(false);
+
   // Sync state with hook and socket
   useEffect(() => {
-    setIsConnected(socket.connected && isOnline);
-    if (!isOnline || !board) return;
+    if (isOnline) {
+      setIsConnected(socket.connected && isOnline);
+    }
+
+    if (!isOnline || !board || !isFocused || isSyncing.current) return;
 
     const syncState = async () => {
-      // 1. Force Resume
-      await queryClient.resumePausedMutations();
+      if (isSyncing.current) return;
+      isSyncing.current = true;
 
-      // 2. STRICTOR WAIT: Ensure no mutations are even in 'loading' or 'pending'
-      // We poll until the total mutation count is 0
-      await new Promise<void>((resolve) => {
-        const check = () => {
-          const isBusy = queryClient.isMutating() > 0;
-          if (!isBusy) resolve();
-          else setTimeout(check, 200);
-        };
-        check();
-      });
+      try {
+        console.log("Syncing state: Window Gained Focus");
+        // 1. Force Resume
+        await queryClient.resumePausedMutations();
 
-      // 3. DATABASE SETTLE TIME: Add a small delay (100-200ms)
-      // This allows the DB transactions to fully commit before we fetch.
-      await new Promise((r) => setTimeout(r, 200));
+        // 2. STRICTOR WAIT: Ensure no mutations are even in 'loading' or 'pending'
+        await new Promise<void>((resolve) => {
+          const check = () => {
+            const isBusy = queryClient.isMutating() > 0;
+            if (!isBusy) resolve();
+            else setTimeout(check, 200);
+          };
+          check();
+        });
 
-      console.log("System Idle. Reconciling...");
-      await reconcileEvents();
+        // 3. DATABASE SETTLE TIME
+        await new Promise((r) => setTimeout(r, 200));
+
+        console.log("System Idle. Reconciling...");
+        await reconcileEvents();
+      } catch (error) {
+        console.error("syncState failed:", error);
+      } finally {
+        isSyncing.current = false;
+      }
     };
 
     syncState();
-  }, [isOnline]);
+  }, [isOnline, isFocused]);
 
   useEffect(() => {
     if (isConnected) {

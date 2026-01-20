@@ -55,8 +55,8 @@ export async function reconcileEvents() {
   const version = useBoardDataStore.getState().boardVersion;
   const boardEvents = await getBoardEventsAPI(boardId!, version);
 
-  boardEvents.forEach((event: Event) => {
-    eventHandler(event);
+  boardEvents.forEach((event) => {
+    eventHandler(event as Event);
   });
 }
 
