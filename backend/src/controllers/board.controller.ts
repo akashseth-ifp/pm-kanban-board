@@ -50,14 +50,17 @@ export const getBoardsHandler = async (
   try {
     const userId = req.user!.id;
 
+    // get list of all board where user is Active member, I only want list of boards not board_member row
     const boards = await db
-      .selectDistinct()
-      .from(board)
-      .innerJoin(boardMember, eq(board.id, boardMember.boardId))
-      .where(eq(boardMember.userId, userId))
-      .orderBy(desc(board.createdAt));
+      .select({ board })
+      .from(boardMember)
+      .innerJoin(board, eq(boardMember.boardId, board.id))
+      .where(
+        and(eq(boardMember.userId, userId), eq(boardMember.status, "Active"))
+      )
+      .orderBy(desc(board.updatedAt));
 
-    res.json(boards.map((item) => item.boards));
+    res.json(boards.map((data) => data.board));
   } catch (error) {
     req.log.error(`Get Boards Error: ${error}`);
     res.status(500).json({ message: "Internal Server Error" });

@@ -92,6 +92,13 @@
       "when": 1768822916584,
       "tag": "0012_naive_blockbuster",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1768902896795,
+      "tag": "0013_naive_kid_colt",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ import {
   uuid,
   check,
   uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z, object, uuidv7, email } from "zod";
@@ -41,6 +42,7 @@ export const boardMember = pgTable(
     uniqueIndex("unique_pending_invite")
       .on(table.boardId, table.email)
       .where(sql`${table.status} = 'Pending'`),
+    index("idx_user_id_status").on(table.userId, table.status),
   ]
 );
 
