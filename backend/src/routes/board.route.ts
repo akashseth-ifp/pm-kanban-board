@@ -5,6 +5,9 @@ import {
   getBoardsHandler,
   inviteUserHandler,
   acceptInviteHandler,
+  getBoardMembersHandler,
+  deleteBoardMemberHandler,
+  updateBoardMemberRoleHandler,
 } from "../controllers/board.controller";
 import {
   createBoardHandler,
@@ -17,6 +20,9 @@ import { authorizeResource } from "../middleware/authorize.middleware";
 import {
   acceptInviteSchema,
   inviteBoardMemberSchema,
+  getBoardMembersSchema,
+  deleteBoardMemberSchema,
+  updateBoardMemberSchema,
 } from "../schema/board-member.schema";
 const router: express.Router = express.Router();
 
@@ -49,6 +55,30 @@ router.get(
   authorizeResource("Viewer"),
   validateResource(getBoardEventsSchema),
   getBoardEventsHandler
+);
+
+// Get all members of a board
+router.get(
+  "/:boardId/members",
+  authorizeResource("Viewer"),
+  validateResource(getBoardMembersSchema),
+  getBoardMembersHandler
+);
+
+// Delete a member from a board
+router.delete(
+  "/:boardId/members/:memberId",
+  authorizeResource("Admin"),
+  validateResource(deleteBoardMemberSchema),
+  deleteBoardMemberHandler
+);
+
+// Update a member's role
+router.patch(
+  "/:boardId/members/:memberId",
+  authorizeResource("Admin"),
+  validateResource(updateBoardMemberSchema),
+  updateBoardMemberRoleHandler
 );
 
 export default router;

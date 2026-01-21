@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { db } from "../db";
 import { board } from "../schema/board.schema";
 import { boardMember } from "../schema/board-member.schema";
+import { user } from "../schema/auth-schema";
 import { eq, desc, asc, and, gt } from "drizzle-orm";
 import { list } from "../schema";
 import { boardEvent } from "../schema/board-events.schema";
@@ -235,6 +236,223 @@ export const acceptInviteHandler = async (
     if (error && error instanceof Error) {
       return res.status(500).json({ message: error.message });
     }
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getBoardMembersHandler = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { boardId } = req.params;
+    const userId = req.user!.id;
+
+    // Get current user's role
+    const [currentUserMembership] = await db
+      .select()
+      .from(boardMember)
+      .where(
+        and(eq(boardMember.boardId, boardId), eq(boardMember.userId, userId))
+      );
+
+    if (!currentUserMembership) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const isAdmin = currentUserMembership.role === "Admin";
+
+    // Fetch active members with user details
+    const activeMembers = await db
+      .select({
+        id: boardMember.id,
+        role: boardMember.role,
+        status: boardMember.status,
+        createdAt: boardMember.createdAt,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        },
+      })
+      .from(boardMember)
+      .innerJoin(user, eq(boardMember.userId, user.id))
+      .where(
+        and(eq(boardMember.boardId, boardId), eq(boardMember.status, "Active"))
+      );
+
+    // If admin, also fetch pending invites
+    let pendingInvites: any[] = [];
+    if (isAdmin) {
+      pendingInvites = await db
+        .select({
+          id: boardMember.id,
+          email: boardMember.email,
+          role: boardMember.role,
+          status: boardMember.status,
+          createdAt: boardMember.createdAt,
+        })
+        .from(boardMember)
+        .where(
+          and(
+            eq(boardMember.boardId, boardId),
+            eq(boardMember.status, "Pending")
+          )
+        );
+    }
+
+    return res.json({
+      activeMembers,
+      pendingInvites,
+    });
+  } catch (error) {
+    req.log.error(`Get Board Members Error: ${error}`);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const deleteBoardMemberHandler = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { boardId, memberId } = req.params;
+    const userId = req.user!.id;
+
+    // Get board owner
+    const [foundBoard] = await db
+      .select()
+      .from(board)
+      .where(eq(board.id, boardId));
+
+    if (!foundBoard) {
+      return res.status(404).json({ message: "Board not found" });
+    }
+
+    const isOwner = foundBoard.userId === userId;
+
+    // Get requester's role
+    const [requesterMembership] = await db
+      .select()
+      .from(boardMember)
+      .where(
+        and(eq(boardMember.boardId, boardId), eq(boardMember.userId, userId))
+      );
+
+    if (!requesterMembership) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Get target member
+    const [targetMember] = await db
+      .select()
+      .from(boardMember)
+      .where(eq(boardMember.id, memberId));
+
+    if (!targetMember) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
+    // Authorization logic
+    // Owner can remove anyone
+    // Admin can remove Member and Viewer (not Admin)
+    if (!isOwner) {
+      if (requesterMembership.role !== "Admin") {
+        return res
+          .status(403)
+          .json({ message: "Only Admin or Owner can remove members" });
+      }
+
+      if (targetMember.role === "Admin") {
+        return res.status(403).json({ message: "Only Owner can remove Admin" });
+      }
+    }
+
+    // Delete the member
+    await db.delete(boardMember).where(eq(boardMember.id, memberId));
+
+    return res.json({ message: "Member removed successfully" });
+  } catch (error) {
+    req.log.error(`Delete Board Member Error: ${error}`);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const updateBoardMemberRoleHandler = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { boardId, memberId } = req.params;
+    const { role: newRole } = req.body;
+    const userId = req.user!.id;
+
+    // Get board owner
+    const [foundBoard] = await db
+      .select()
+      .from(board)
+      .where(eq(board.id, boardId));
+
+    if (!foundBoard) {
+      return res.status(404).json({ message: "Board not found" });
+    }
+
+    const isOwner = foundBoard.userId === userId;
+
+    // Get requester's role
+    const [requesterMembership] = await db
+      .select()
+      .from(boardMember)
+      .where(
+        and(eq(boardMember.boardId, boardId), eq(boardMember.userId, userId))
+      );
+
+    if (!requesterMembership) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Get target member
+    const [targetMember] = await db
+      .select()
+      .from(boardMember)
+      .where(eq(boardMember.id, memberId));
+
+    if (!targetMember) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
+    // Cannot change own role
+    if (targetMember.userId === userId) {
+      return res.status(403).json({ message: "Cannot change your own role" });
+    }
+
+    // Authorization logic
+    // Owner can change to Admin, Member, Viewer
+    // Admin can change to Member, Viewer (not Admin)
+    if (!isOwner) {
+      if (requesterMembership.role !== "Admin") {
+        return res
+          .status(403)
+          .json({ message: "Only Admin or Owner can change roles" });
+      }
+
+      if (newRole === "Admin") {
+        return res
+          .status(403)
+          .json({ message: "Only Owner can assign Admin role" });
+      }
+    }
+
+    // Update the role
+    await db
+      .update(boardMember)
+      .set({ role: newRole })
+      .where(eq(boardMember.id, memberId));
+
+    return res.json({ message: "Role updated successfully" });
+  } catch (error) {
+    req.log.error(`Update Board Member Role Error: ${error}`);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };

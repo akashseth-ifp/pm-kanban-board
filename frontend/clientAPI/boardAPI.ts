@@ -55,3 +55,51 @@ export const acceptInviteAPI = async (
     }),
   });
 };
+
+export const getBoardMembersAPI = async (
+  boardId: string
+): Promise<{
+  activeMembers: Array<{
+    id: string;
+    role: string;
+    status: string;
+    createdAt: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      image: string | null;
+    };
+  }>;
+  pendingInvites: Array<{
+    id: string;
+    email: string;
+    role: string;
+    status: string;
+    createdAt: string;
+  }>;
+}> => {
+  return fetchWithAuth(`${API_URL}/${boardId}/members`);
+};
+
+export const deleteBoardMemberAPI = async (
+  boardId: string,
+  memberId: string
+): Promise<{ message: string }> => {
+  return fetchWithAuth(`${API_URL}/${boardId}/members/${memberId}`, {
+    method: "DELETE",
+  });
+};
+
+export const updateBoardMemberRoleAPI = async (
+  boardId: string,
+  memberId: string,
+  role: string
+): Promise<{ message: string }> => {
+  return fetchWithAuth(`${API_URL}/${boardId}/members/${memberId}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      role,
+    }),
+  });
+};

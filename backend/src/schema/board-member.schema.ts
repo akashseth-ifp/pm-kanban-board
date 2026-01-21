@@ -81,9 +81,16 @@ export const getBoardMemberSchema = z.object({
   }).strict(),
 });
 
+export const getBoardMembersSchema = z.object({
+  params: object({
+    boardId: uuidv7("A valid board id is required."),
+  }).strict(),
+});
+
 export const updateBoardMemberSchema = z.object({
   params: object({
-    id: uuidv7("A valid board member id is required."),
+    boardId: uuidv7("A valid board id is required."),
+    memberId: uuidv7("A valid board member id is required."),
   }).strict(),
   body: createInsertSchema(boardMember)
     .pick({
@@ -96,7 +103,8 @@ export const updateBoardMemberSchema = z.object({
 
 export const deleteBoardMemberSchema = z.object({
   params: object({
-    id: uuidv7("A valid board member id is required."),
+    boardId: uuidv7("A valid board id is required."),
+    memberId: uuidv7("A valid board member id is required."),
   }).strict(),
 });
 
