@@ -9,7 +9,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z, object, uuidv7, email } from "zod";
+import { z, object, uuidv7, email, string } from "zod";
 import { user } from "./auth-schema";
 import { board } from "./board.schema";
 
@@ -113,4 +113,10 @@ export const inviteBoardMemberSchema = z.object({
       email: email("A valid email is required."),
       role: z.enum(ALLOWED_ROLES),
     }),
+});
+
+export const acceptInviteSchema = z.object({
+  body: object({
+    inviteToken: string("A valid invite token is required."),
+  }).strict(),
 });

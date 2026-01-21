@@ -5,6 +5,12 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("better-auth.session_token");
 
+  console.log("pathname", pathname);
+
+  if (pathname.startsWith("/app/invite")) {
+    return NextResponse.next();
+  }
+
   if (!token) {
     if (pathname.startsWith("/auth")) {
       return NextResponse.next();
@@ -12,7 +18,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth", request.url));
   } else {
     if (pathname.startsWith("/auth")) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/app/dashboard", request.url));
     }
     return NextResponse.next();
   }

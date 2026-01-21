@@ -6,7 +6,8 @@ import router from "./routes";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
 import logger from "./lib/logger";
-import { initSocket } from "./lib/socket";
+import { initSocket } from "./lib/socket"; // Must be first
+import { globalErrorHandler } from "./middleware/errorHandler.middleware";
 
 console.log("Current Environment:", process.env.NODE_ENV);
 console.log("Current Port:", process.env.PORT);
@@ -55,6 +56,7 @@ app.use(
 );
 
 app.use("/api", router);
+app.use(globalErrorHandler);
 
 // Start server
 const server = app.listen(PORT, () => {

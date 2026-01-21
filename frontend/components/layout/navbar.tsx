@@ -33,7 +33,7 @@ export function Navbar() {
   const { mutateAsync: signOut } = useMutation({
     mutationFn: () => signOutAPI(),
     onSuccess: () => {
-      router.replace("/auth");
+      router.push("/auth");
     },
     onError: (error) => {
       toast.error(`Failed to sign out: ${error.message}`);
@@ -51,47 +51,49 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-10 w-10 rounded-full p-0 overflow-hidden border"
-              >
-                <img
-                  src={
-                    user?.image ||
-                    `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${user?.id}`
-                  }
-                  alt="Avatar"
-                  className="h-full w-full object-cover"
-                />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-2">
-                  <p className="text-base font-medium leading-none">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {/* <DropdownMenuItem>
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-10 w-10 rounded-full p-0 overflow-hidden border"
+                >
+                  <img
+                    src={
+                      user?.image ||
+                      `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${user?.id}`
+                    }
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-2">
+                    <p className="text-base font-medium leading-none">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {/* <DropdownMenuItem>
                 <IconSettings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem> */}
-              <DropdownMenuItem
-                onClick={() => signOut()}
-                className="text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
-              >
-                <IconLogout className="mr-2 h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem
+                  onClick={() => signOut()}
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
+                >
+                  <IconLogout className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <Button
             variant="ghost"
             size="icon"

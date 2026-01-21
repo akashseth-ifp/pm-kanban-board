@@ -44,3 +44,14 @@ export const inviteUserAPI = async (
     }),
   });
 };
+
+export const acceptInviteAPI = async (
+  inviteToken: string
+): Promise<{ message: string; boardId: string }> => {
+  return fetchWithAuth(`${API_URL}/accept-invite`, {
+    method: "POST",
+    body: JSON.stringify({
+      inviteToken,
+    }),
+  });
+};

@@ -4,6 +4,7 @@ import {
   getBoardEventsHandler,
   getBoardsHandler,
   inviteUserHandler,
+  acceptInviteHandler,
 } from "../controllers/board.controller";
 import {
   createBoardHandler,
@@ -13,7 +14,10 @@ import { validateResource } from "../middleware/validateResource.middleware";
 import { createBoardSchema, getBoardSchema } from "../schema/board.schema";
 import { getBoardEventsSchema } from "../schema/board-events.schema";
 import { authorizeResource } from "../middleware/authorize.middleware";
-import { inviteBoardMemberSchema } from "../schema/board-member.schema";
+import {
+  acceptInviteSchema,
+  inviteBoardMemberSchema,
+} from "../schema/board-member.schema";
 const router: express.Router = express.Router();
 
 // Apply auth middleware to all routes
@@ -31,6 +35,12 @@ router.post(
   authorizeResource("Admin"),
   validateResource(inviteBoardMemberSchema),
   inviteUserHandler
+);
+
+router.post(
+  "/accept-invite",
+  validateResource(acceptInviteSchema),
+  acceptInviteHandler
 );
 
 // Get all the events related to a board from board-events table

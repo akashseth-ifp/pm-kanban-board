@@ -60,6 +60,8 @@ export function InviteMemberModal({
   const { mutate: inviteUser, isPending } = useMutation({
     mutationFn: (data: FormData) =>
       inviteUserAPI(boardId, data.email, data.role),
+    retry: 0,
+    networkMode: "online",
     onSuccess: () => {
       toast.success("Invitation sent successfully!");
       form.reset();
