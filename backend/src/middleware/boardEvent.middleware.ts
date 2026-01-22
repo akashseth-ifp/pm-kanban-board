@@ -127,5 +127,5 @@ export const boardEventMiddleware = (
     );
   }
 
-  return new AppError(`Invalid event type, ${eventType}`, 400);
+  throw new AppError(`Invalid event type, ${eventType}`, 400);
 };
