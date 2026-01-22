@@ -12,7 +12,7 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
         queries: { staleTime: Infinity },
         mutations: {
           networkMode: "offlineFirst",
-          retry: 3,
+          retry: 1,
         },
       },
     });

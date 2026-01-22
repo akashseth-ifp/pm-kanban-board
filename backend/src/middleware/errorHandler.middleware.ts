@@ -3,22 +3,24 @@ import { NextFunction, Request, Response } from "express";
 import { AppError } from "../lib/app-error";
 import { DrizzleQueryError } from "drizzle-orm";
 import { PostgresError } from "postgres";
+import { ZodError } from "zod";
 
 export const globalErrorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   let error = { ...err };
   error.message = err.message;
 
   req.log.error(
     `Global Error Handler: [${req.method}] ${req.path} >> ${JSON.stringify(
-      err
-    )}`
+      err,
+    )}`,
   );
 
+  // check for database error
   if (err instanceof DrizzleQueryError) {
     // 1. Handle Postgres/Drizzle Specific Errors
     console.log(err.cause);
@@ -31,6 +33,15 @@ export const globalErrorHandler = (
         error = new AppError("Referenced record not found.", 400);
       }
     }
+  }
+
+  // check for Zod validation error
+  if (err instanceof ZodError) {
+    const errorMessages = [];
+    for (let currErr of err.issues) {
+      errorMessages.push(currErr.message);
+    }
+    error = new AppError(errorMessages.join("\n"), 400);
   }
 
   // 3. Send Response to Client

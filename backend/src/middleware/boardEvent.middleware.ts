@@ -12,136 +12,120 @@ import { UpdateTicketEventSchema } from "../boardEvents/updateTicket.event";
 import { DeleteTicketEventSchema } from "../boardEvents/deleteTicket.event";
 import { MoveListEventSchema } from "../boardEvents/moveList.event";
 import { MoveTicketEventSchema } from "../boardEvents/moveTicket.event";
+import { AppError } from "../lib/app-error";
 
 export const boardEventMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  try {
-    const { eventType } = req.body;
+  const { eventType } = req.body;
 
-    if (eventType === "UPDATE_BOARD") {
-      return validateResource(UpdateBoardEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Admin")(req, res, next);
-        }
-      );
-    }
+  if (eventType === "UPDATE_BOARD") {
+    return validateResource(UpdateBoardEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Admin")(req, res, next);
+      },
+    );
+  }
 
-    if (eventType === "DELETE_BOARD") {
-      return validateResource(DeleteBoardEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Admin")(req, res, next);
-        }
-      );
-    }
+  if (eventType === "DELETE_BOARD") {
+    return validateResource(DeleteBoardEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Admin")(req, res, next);
+      },
+    );
+  }
 
-    if (eventType === "GET_BOARD") {
-      return validateResource(GetBoardEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Viewer")(req, res, next);
-        }
-      );
-    }
+  if (eventType === "GET_BOARD") {
+    return validateResource(GetBoardEventSchema)(req, res, (validationErr) => {
+      if (validationErr) return next(validationErr);
+      return authorizeResource("Viewer")(req, res, next);
+    });
+  }
 
-    if (eventType === "ADD_LIST") {
-      return validateResource(AddListEventSchema)(req, res, (validationErr) => {
+  if (eventType === "ADD_LIST") {
+    return validateResource(AddListEventSchema)(req, res, (validationErr) => {
+      if (validationErr) return next(validationErr);
+      return authorizeResource("Member")(req, res, next);
+    });
+  }
+
+  if (eventType === "UPDATE_LIST") {
+    return validateResource(UpdateListEventSchema)(
+      req,
+      res,
+      (validationErr) => {
         if (validationErr) return next(validationErr);
         return authorizeResource("Member")(req, res, next);
-      });
-    }
-
-    if (eventType === "UPDATE_LIST") {
-      return validateResource(UpdateListEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Member")(req, res, next);
-        }
-      );
-    }
-
-    if (eventType === "DELETE_LIST") {
-      return validateResource(DeleteListEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Member")(req, res, next);
-        }
-      );
-    }
-
-    // add support for eventType ADD_TICKET, UPDATE_TICKET, DELETE_TICKET
-    if (eventType === "ADD_TICKET") {
-      return validateResource(AddTicketEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Member")(req, res, next);
-        }
-      );
-    }
-
-    if (eventType === "UPDATE_TICKET") {
-      return validateResource(UpdateTicketEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Member")(req, res, next);
-        }
-      );
-    }
-
-    if (eventType === "DELETE_TICKET") {
-      return validateResource(DeleteTicketEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Member")(req, res, next);
-        }
-      );
-    }
-
-    if (eventType === "MOVE_LIST") {
-      return validateResource(MoveListEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Member")(req, res, next);
-        }
-      );
-    }
-
-    if (eventType === "MOVE_TICKET") {
-      return validateResource(MoveTicketEventSchema)(
-        req,
-        res,
-        (validationErr) => {
-          if (validationErr) return next(validationErr);
-          return authorizeResource("Member")(req, res, next);
-        }
-      );
-    }
-
-    return res.status(400).send({ error: `Invalid event type, ${eventType}` });
-  } catch (e: any) {
-    req.log.error(`Event Middleware Failed: ${e}`);
-    return res.status(500).send({ error: "Internal Server Error" });
+      },
+    );
   }
+
+  if (eventType === "DELETE_LIST") {
+    return validateResource(DeleteListEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Member")(req, res, next);
+      },
+    );
+  }
+
+  // add support for eventType ADD_TICKET, UPDATE_TICKET, DELETE_TICKET
+  if (eventType === "ADD_TICKET") {
+    return validateResource(AddTicketEventSchema)(req, res, (validationErr) => {
+      if (validationErr) return next(validationErr);
+      return authorizeResource("Member")(req, res, next);
+    });
+  }
+
+  if (eventType === "UPDATE_TICKET") {
+    return validateResource(UpdateTicketEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Member")(req, res, next);
+      },
+    );
+  }
+
+  if (eventType === "DELETE_TICKET") {
+    return validateResource(DeleteTicketEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Member")(req, res, next);
+      },
+    );
+  }
+
+  if (eventType === "MOVE_LIST") {
+    return validateResource(MoveListEventSchema)(req, res, (validationErr) => {
+      if (validationErr) return next(validationErr);
+      return authorizeResource("Member")(req, res, next);
+    });
+  }
+
+  if (eventType === "MOVE_TICKET") {
+    return validateResource(MoveTicketEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Member")(req, res, next);
+      },
+    );
+  }
+
+  return new AppError(`Invalid event type, ${eventType}`, 400);
 };
