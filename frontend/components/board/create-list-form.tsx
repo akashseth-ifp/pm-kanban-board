@@ -31,7 +31,7 @@ export const CreateListForm = () => {
     handleSubmit,
     setFocus,
     reset,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -95,6 +95,11 @@ export const CreateListForm = () => {
           placeholder="Enter list title..."
           disabled={isPending}
         />
+        {errors.title && (
+          <p className="text-destructive text-xs mt-1 ml-1">
+            {errors.title.message}
+          </p>
+        )}
         <div className="mt-3 flex items-center gap-x-1">
           <Button type="submit" loading={isPending} size="sm" variant="default">
             Add List
