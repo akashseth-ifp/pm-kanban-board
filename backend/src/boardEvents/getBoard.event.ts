@@ -2,6 +2,7 @@ import { db } from "../db";
 import { Board, board, List, list, ticket, Ticket } from "../schema";
 import { z, object, uuid, string } from "zod";
 import { eq, asc } from "drizzle-orm";
+import { AppError } from "../lib/app-error";
 
 export const GetBoardEventSchema = object({
   body: object({
@@ -34,7 +35,7 @@ export const getBoardEvent = async (
     .where(eq(board.id, boardId));
 
   if (!foundBoard) {
-    throw new Error("Board not found");
+    throw new AppError("Board not found", 404);
   }
 
   // fectch all the list for the board sorted by position

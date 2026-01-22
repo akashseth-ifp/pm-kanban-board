@@ -4,6 +4,7 @@ import { z, object, string, uuid } from "zod";
 import { ticket } from "../schema/ticket.schema";
 import { board } from "../schema/board.schema";
 import { eq, sql } from "drizzle-orm";
+import { AppError } from "../lib/app-error";
 
 export const UpdateTicketEventSchema = object({
   body: object({
@@ -62,7 +63,7 @@ export const updateTicketEvent = async (
       .returning();
 
     if (!updatedTicket) {
-      throw new Error("Ticket not found");
+      throw new AppError("Ticket not found", 404);
     }
 
     // Update the board with version

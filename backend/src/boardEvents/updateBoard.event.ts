@@ -3,6 +3,7 @@ import { board } from "../schema/board.schema";
 import { boardEvent } from "../schema/board-events.schema";
 import { z, object, string, number, uuid } from "zod";
 import { eq, sql } from "drizzle-orm";
+import { AppError } from "../lib/app-error";
 
 // Schema for validateResource middleware (expects body/params/query structure)
 export const UpdateBoardEventSchema = object({
@@ -54,7 +55,7 @@ export const updateBoardEvent = async (
       .returning();
 
     if (!updatedBoard) {
-      throw new Error("Board not found");
+      throw new AppError("Board not found", 404);
     }
 
     const eventResponse = {

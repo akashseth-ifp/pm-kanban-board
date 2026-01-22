@@ -2,6 +2,7 @@ import { db } from "../db";
 import { board } from "../schema/board.schema";
 import { z, object, string } from "zod";
 import { eq } from "drizzle-orm";
+import { AppError } from "../lib/app-error";
 
 export const DeleteBoardEventSchema = object({
   body: object({
@@ -32,7 +33,7 @@ export const deleteBoardEvent = async (
     .returning();
 
   if (!deletedBoard) {
-    throw new Error("Board not found or already deleted");
+    throw new AppError("Board not found or already deleted", 404);
   }
 
   return {
