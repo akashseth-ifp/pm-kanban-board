@@ -59,6 +59,7 @@ export function Navbar() {
                   className="relative h-10 w-10 rounded-full p-0 overflow-hidden border"
                 >
                   <img
+                    suppressHydrationWarning
                     src={
                       user?.image ||
                       `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${user?.id}`

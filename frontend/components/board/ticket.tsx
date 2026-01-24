@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import useBoardDataStore from "@/store/boardData.store";
 import { Badge } from "@/components/ui/badge";
-import { EditTicketModal } from "./edit-ticket-modal";
+import { CardDetailModal } from "./card-detail-modal";
 import { DropIndicator } from "./drop-indicator";
 import { getTicketIndex } from "@/utils/board-position";
 
@@ -128,7 +128,7 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
               "hover:ring-1",
               "hover:ring-primary",
               "hover:ring-2",
-              "hover:ring-blue-400"
+              "hover:ring-blue-400",
             );
             clone.style.width = `${element.offsetWidth}px`;
             clone.style.transform = "rotate(2deg)";
@@ -362,7 +362,7 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
           </div>
         </div>
       </div>
-      <EditTicketModal
+      <CardDetailModal
         ticket={ticket}
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
