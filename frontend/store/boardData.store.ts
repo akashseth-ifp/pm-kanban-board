@@ -1,4 +1,4 @@
-import { Board, List, Ticket } from "@backend/schema";
+import { Board, List, Ticket, Comment, CommentWithUser } from "@backend/schema";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -9,6 +9,7 @@ type BoardDataState = {
   boardData: Board | null;
   listsById: Record<string, List>;
   ticketsById: Record<string, Ticket>;
+  commentsByTicketId: Record<string, CommentWithUser[]>;
 };
 
 type BoardDataActions = {
@@ -29,6 +30,16 @@ type BoardDataActions = {
   updateTicket(ticketId: string, patch: Partial<Ticket>): void;
   deleteTicket(ticketId: string): void;
 
+  /* Comments */
+  setTicketComments(ticketId: string, comments: CommentWithUser[]): void;
+  addComment(comment: CommentWithUser): void;
+  updateComment(
+    commentId: string,
+    ticketId: string,
+    patch: Partial<CommentWithUser>,
+  ): void;
+  deleteComment(commentId: string, ticketId: string): void;
+
   /* Board */
   updateBoard(patch: Partial<Board>): void;
 };
@@ -42,6 +53,7 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
       boardData: null,
       listsById: {},
       ticketsById: {},
+      commentsByTicketId: {},
       reset: () =>
         set({
           boardId: null,
@@ -50,6 +62,7 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
           boardData: null,
           listsById: {},
           ticketsById: {},
+          commentsByTicketId: {},
         }),
 
       setVersion: (version: number) =>
@@ -80,6 +93,7 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
           boardData: board,
           listsById: Object.fromEntries(lists.map((l) => [l.id, l])),
           ticketsById: Object.fromEntries(tickets.map((c) => [c.id, c])),
+          commentsByTicketId: {},
         }),
 
       addList: (list) =>
@@ -126,6 +140,50 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
           return { ticketsById: rest };
         }),
 
+      setTicketComments: (ticketId, comments) =>
+        set((s) => ({
+          commentsByTicketId: { ...s.commentsByTicketId, [ticketId]: comments },
+        })),
+
+      addComment: (comment) =>
+        set((s) => {
+          const ticketComments = s.commentsByTicketId[comment.ticketId];
+          if (!ticketComments) return s;
+          if (ticketComments.find((c) => c.id === comment.id)) return s;
+          return {
+            commentsByTicketId: {
+              ...s.commentsByTicketId,
+              [comment.ticketId]: [...ticketComments, comment],
+            },
+          };
+        }),
+
+      updateComment: (id, ticketId, patch) =>
+        set((s) => {
+          const ticketComments = s.commentsByTicketId[ticketId];
+          if (!ticketComments) return s;
+          return {
+            commentsByTicketId: {
+              ...s.commentsByTicketId,
+              [ticketId]: ticketComments.map((c) =>
+                c.id === id ? { ...c, ...patch } : c,
+              ),
+            },
+          };
+        }),
+
+      deleteComment: (id, ticketId) =>
+        set((s) => {
+          const ticketComments = s.commentsByTicketId[ticketId];
+          if (!ticketComments) return s;
+          return {
+            commentsByTicketId: {
+              ...s.commentsByTicketId,
+              [ticketId]: ticketComments.filter((c) => c.id !== id),
+            },
+          };
+        }),
+
       updateBoard: (patch) =>
         set((s) => ({
           boardData: s.boardData ? { ...s.boardData, ...patch } : null,
@@ -134,8 +192,8 @@ const useBoardDataStore = create<BoardDataState & BoardDataActions>()(
     {
       enabled: process.env.NODE_ENV === "development",
       name: "BoardDataStore",
-    }
-  )
+    },
+  ),
 );
 
 export default useBoardDataStore;

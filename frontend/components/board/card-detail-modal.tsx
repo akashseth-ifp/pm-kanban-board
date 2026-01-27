@@ -49,6 +49,7 @@ import {
   IconPaperclip,
 } from "@tabler/icons-react";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
+import { CommentSection } from "./comment-section";
 
 const PRIORITY_COLORS: Record<string, string> = {
   Critical: "bg-red-500",
@@ -156,10 +157,14 @@ export const CardDetailModal = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-4xl h-[85vh] p-0 gap-0 overflow-hidden flex flex-col bg-[#F1F2F4] dark:bg-[#1d2125]">
         <AlertDialogTitle className="sr-only">Edit Ticket</AlertDialogTitle>
+        <AlertDialogDescription className="sr-only">
+          Edit and manage ticket details, description, and comments.
+        </AlertDialogDescription>
         {/* Header Image / Cover would go here */}
 
         <div className="flex-1 overflow-y-auto w-full">
           <form
+            id="ticket-info-form"
             onSubmit={handleSubmit(onFormSubmit)}
             className="flex flex-col h-full"
           >
@@ -188,7 +193,7 @@ export const CardDetailModal = ({
 
             <div className="p-6 pt-0 grid grid-cols-1 md:grid-cols-[1fr_200px] gap-8">
               {/* Main Content */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* Description */}
                 <div>
                   <div className="flex items-center gap-4 mb-2">
@@ -199,85 +204,23 @@ export const CardDetailModal = ({
                     <TiptapEditor
                       content={description || ""}
                       onChange={(val) => {
-                        console.log(val);
                         setValue("description", val, { shouldDirty: true });
                       }}
                     />
                   </div>
                 </div>
 
-                {/* Activity / Comments Placeholder */}
-                <div>
-                  <div className="flex items-center gap-4 mb-2">
-                    <IconList className="w-6 h-6 -ml-0.5 text-muted-foreground" />
-                    <h3 className="font-semibold text-base">Activity</h3>
-                  </div>
-                  <div className="pl-10 flex gap-3">
-                    {/* Avatar placeholder */}
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold">
-                      AS
-                    </div>
-                    <div className="flex-1">
-                      <div className="bg-background rounded-md border shadow-sm p-3 text-sm text-muted-foreground">
-                        Write a comment...
-                      </div>
-                    </div>
-                  </div>
+                {/* Activity / Comments */}
+                <div className="pl-0">
+                  <CommentSection
+                    ticketId={ticket.id}
+                    boardId={ticket.boardId}
+                  />
                 </div>
               </div>
 
               {/* Sidebar */}
               <div className="space-y-6">
-                <div>
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                    Add to card
-                  </span>
-                  <div className="flex flex-col gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="secondary"
-                          className="justify-start h-8 px-2 w-full text-sm font-normal bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 shadow-none border-none"
-                        >
-                          <IconUser className="w-4 h-4 mr-2" /> Members
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-56">
-                        <DropdownMenuItem>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold">
-                              AS
-                            </div>
-                            <span>Akash Seth</span>
-                          </div>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-[10px] font-bold text-blue-700">
-                              JD
-                            </div>
-                            <span>John Doe</span>
-                          </div>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-[10px] font-bold text-green-700">
-                              JS
-                            </div>
-                            <span>Jane Smith</span>
-                          </div>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button
-                      variant="secondary"
-                      className="justify-start h-8 px-2 w-full text-sm font-normal bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 shadow-none border-none"
-                    >
-                      <IconPaperclip className="w-4 h-4 mr-2" /> Attachment
-                    </Button>
-                  </div>
-                </div>
-
                 <div>
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
                     Actions
@@ -349,6 +292,7 @@ export const CardDetailModal = ({
                 </div>
               </div>
             </div>
+
             <div className="p-6 pt-2 mt-auto border-t bg-background flex justify-end gap-2 sticky bottom-0">
               <Button
                 type="submit"

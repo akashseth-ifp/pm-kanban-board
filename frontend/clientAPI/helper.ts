@@ -21,3 +21,9 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     throw error;
   }
 };
+export const post = async <T>(url: string, body: any): Promise<T> => {
+  return fetchWithAuth(url, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+};

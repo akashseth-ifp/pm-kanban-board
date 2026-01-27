@@ -44,11 +44,27 @@ import {
   moveTicketEvent,
   MoveTicketEventResponse,
 } from "../boardEvents/moveTicket.event";
+import {
+  addCommentEvent,
+  AddCommentEventResponse,
+} from "../boardEvents/addComment.event";
+import {
+  updateCommentEvent,
+  UpdateCommentEventResponse,
+} from "../boardEvents/updateComment.event";
+import {
+  deleteCommentEvent,
+  DeleteCommentEventResponse,
+} from "../boardEvents/deleteComment.event";
+import {
+  getTicketCommentsEvent,
+  GetTicketCommentsResponse,
+} from "../boardEvents/getTicketComments.event";
 
 export const boardEventPostHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { eventType, boardId } = req.body;
@@ -56,7 +72,7 @@ export const boardEventPostHandler = async (
 
     req.log.info(`Event Type: ${eventType}`);
     req.log.info(
-      `Event Data: ${JSON.stringify({ userId, ...req.body }, null, 2)}`
+      `Event Data: ${JSON.stringify({ userId, ...req.body }, null, 2)}`,
     );
 
     let result:
@@ -70,7 +86,11 @@ export const boardEventPostHandler = async (
       | AddTicketEventResponse
       | UpdateTicketEventResponse
       | MoveTicketEventResponse
-      | DeleteTicketEventResponse;
+      | DeleteTicketEventResponse
+      | AddCommentEventResponse
+      | UpdateCommentEventResponse
+      | DeleteCommentEventResponse
+      | GetTicketCommentsResponse;
 
     if (eventType === "UPDATE_BOARD") {
       result = await updateBoardEvent(req.body, userId);
@@ -94,6 +114,14 @@ export const boardEventPostHandler = async (
       result = await moveTicketEvent(req.body, userId);
     } else if (eventType === "DELETE_TICKET") {
       result = await deleteTicketEvent(req.body, userId);
+    } else if (eventType === "ADD_COMMENT") {
+      result = await addCommentEvent(req.body, userId);
+    } else if (eventType === "UPDATE_COMMENT") {
+      result = await updateCommentEvent(req.body, userId);
+    } else if (eventType === "DELETE_COMMENT") {
+      result = await deleteCommentEvent(req.body, userId);
+    } else if (eventType === "GET_TICKET_COMMENTS") {
+      result = await getTicketCommentsEvent(req.body, userId);
     } else {
       res.status(400).json({ message: "Event not found: " + eventType });
       return;

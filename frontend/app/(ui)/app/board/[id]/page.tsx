@@ -14,20 +14,19 @@ import useBoardOrderStore from "@/store/boardOrder.store";
 import { toast } from "sonner";
 import { useIsOnline } from "@/hooks/useIsOnline";
 import { useTabActive } from "@/hooks/useTabActive";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function BoardPage() {
   const params = useParams();
-  const boardId = params.id as string;
-  const resetBoardData = useBoardDataStore((state) => state.reset);
-  const resetBoardOrder = useBoardOrderStore((state) => state.reset);
+  const boardIdFromUrl = params.id as string;
+  const queryClient = useQueryClient();
+
   const setBoard = useBoardDataStore((state) => state.setBoard);
   const board = useBoardDataStore((state) => state.boardData);
   const setBoardOrder = useBoardOrderStore((state) => state.setBoardOrder);
-  const queryClient = new QueryClient();
 
   const isOnline = useIsOnline();
   const isFocused = useTabActive();
-  console.log("useTabActive -------------- ", isFocused);
   const [isConnected, setIsConnected] = useState(socket.connected && isOnline);
   const isInitialConnection = useRef(true);
 
@@ -36,9 +35,10 @@ export default function BoardPage() {
     socket.connect();
 
     function onConnect() {
-      console.log("Socket connected, joining board:", boardId, board);
+      if (!boardIdFromUrl) return;
+      console.log("Socket connected, joining board:", boardIdFromUrl);
       setIsConnected(true);
-      socket.emit("join-board", boardId);
+      socket.emit("join-board", boardIdFromUrl);
     }
 
     function onDisconnect() {
@@ -50,8 +50,8 @@ export default function BoardPage() {
     socket.on("disconnect", onDisconnect);
     socket.on("boardEvent", applyServerEvent);
 
-    // If already connected, join the board immediately
-    if (socket.connected) {
+    // If already connected and we have a boardId, join the board
+    if (socket.connected && boardIdFromUrl) {
       onConnect();
     }
 
@@ -60,25 +60,25 @@ export default function BoardPage() {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("boardEvent", applyServerEvent);
-      resetBoardData();
-      resetBoardOrder();
+      useBoardDataStore.getState().reset();
+      useBoardOrderStore.getState().reset();
     };
-  }, [boardId]); // Re-run if the boardId changes
+  }, [boardIdFromUrl]); // Re-run if the boardId changes
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["board", boardId],
-    queryFn: () => getBoardAPI({ boardId }),
+    queryKey: ["board", boardIdFromUrl],
+    queryFn: () => getBoardAPI({ boardId: boardIdFromUrl }),
     staleTime: Infinity,
-    enabled: !!boardId,
+    enabled: !!boardIdFromUrl,
   });
 
   useEffect(() => {
     if (data) {
-      const { board, lists, tickets } = data;
-      setBoard({ board, lists, tickets });
+      const { board: loadedBoard, lists, tickets } = data;
+      setBoard({ board: loadedBoard, lists, tickets });
       setBoardOrder({ lists, tickets });
     }
-  }, [data]);
+  }, [data, setBoard, setBoardOrder]);
 
   const isSyncing = useRef(false);
 

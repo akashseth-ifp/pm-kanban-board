@@ -29,6 +29,9 @@ export const ALLOWED_EVENT_TYPES = [
   "MOVE_TICKET",
   "UPDATE_TICKET",
   "DELETE_TICKET",
+  "ADD_COMMENT",
+  "UPDATE_COMMENT",
+  "DELETE_COMMENT",
 ] as const;
 
 export const ALLOWED_ENTITY_TYPES = [
@@ -36,6 +39,7 @@ export const ALLOWED_ENTITY_TYPES = [
   "List",
   "Board",
   "Member",
+  "Comment",
 ] as const;
 
 export const boardEvent = pgTable(
@@ -60,13 +64,13 @@ export const boardEvent = pgTable(
   (table) => [
     check(
       "event_type_check",
-      sql`${table.eventType} IN ('GET_BOARDS', 'ADD_BOARD', 'GET_BOARD', 'UPDATE_BOARD', 'DELETE_BOARD', 'GET_LISTS', 'ADD_LIST', 'UPDATE_LIST', 'MOVE_LIST', 'DELETE_LIST', 'GET_TICKETS', 'ADD_TICKET', 'GET_TICKET', 'MOVE_TICKET', 'UPDATE_TICKET', 'DELETE_TICKET')`
+      sql`${table.eventType} IN ('GET_BOARDS', 'ADD_BOARD', 'GET_BOARD', 'UPDATE_BOARD', 'DELETE_BOARD', 'GET_LISTS', 'ADD_LIST', 'UPDATE_LIST', 'MOVE_LIST', 'DELETE_LIST', 'GET_TICKETS', 'ADD_TICKET', 'GET_TICKET', 'MOVE_TICKET', 'UPDATE_TICKET', 'DELETE_TICKET', 'ADD_COMMENT', 'UPDATE_COMMENT', 'DELETE_COMMENT')`,
     ),
     check(
       "entity_type_check",
-      sql`${table.entityType} IN ('Ticket', 'List', 'Board', 'Member')`
+      sql`${table.entityType} IN ('Ticket', 'List', 'Board', 'Member', 'Comment')`,
     ),
-  ]
+  ],
 );
 
 export const getBoardEventsSchema = object({

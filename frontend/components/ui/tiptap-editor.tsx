@@ -209,7 +209,6 @@ export const TiptapEditor = ({
           },
         },
       }),
-      Underline,
       Placeholder.configure({
         placeholder,
         emptyEditorClass:

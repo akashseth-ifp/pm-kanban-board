@@ -1,0 +1,4 @@
+ALTER TABLE "board_events" DROP CONSTRAINT "event_type_check";--> statement-breakpoint
+ALTER TABLE "board_events" DROP CONSTRAINT "entity_type_check";--> statement-breakpoint
+ALTER TABLE "board_events" ADD CONSTRAINT "event_type_check" CHECK ("board_events"."event_type" IN ('GET_BOARDS', 'ADD_BOARD', 'GET_BOARD', 'UPDATE_BOARD', 'DELETE_BOARD', 'GET_LISTS', 'ADD_LIST', 'UPDATE_LIST', 'MOVE_LIST', 'DELETE_LIST', 'GET_TICKETS', 'ADD_TICKET', 'GET_TICKET', 'MOVE_TICKET', 'UPDATE_TICKET', 'DELETE_TICKET', 'ADD_COMMENT', 'UPDATE_COMMENT', 'DELETE_COMMENT'));--> statement-breakpoint
+ALTER TABLE "board_events" ADD CONSTRAINT "entity_type_check" CHECK ("board_events"."entity_type" IN ('Ticket', 'List', 'Board', 'Member', 'Comment'));

@@ -12,6 +12,10 @@ import { UpdateTicketEventSchema } from "../boardEvents/updateTicket.event";
 import { DeleteTicketEventSchema } from "../boardEvents/deleteTicket.event";
 import { MoveListEventSchema } from "../boardEvents/moveList.event";
 import { MoveTicketEventSchema } from "../boardEvents/moveTicket.event";
+import { AddCommentEventSchema } from "../boardEvents/addComment.event";
+import { UpdateCommentEventSchema } from "../boardEvents/updateComment.event";
+import { DeleteCommentEventSchema } from "../boardEvents/deleteComment.event";
+import { GetTicketCommentsSchema } from "../boardEvents/getTicketComments.event";
 import { AppError } from "../lib/app-error";
 
 export const boardEventMiddleware = (
@@ -123,6 +127,50 @@ export const boardEventMiddleware = (
       (validationErr) => {
         if (validationErr) return next(validationErr);
         return authorizeResource("Member")(req, res, next);
+      },
+    );
+  }
+
+  if (eventType === "ADD_COMMENT") {
+    return validateResource(AddCommentEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Member")(req, res, next);
+      },
+    );
+  }
+
+  if (eventType === "UPDATE_COMMENT") {
+    return validateResource(UpdateCommentEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Member")(req, res, next);
+      },
+    );
+  }
+
+  if (eventType === "DELETE_COMMENT") {
+    return validateResource(DeleteCommentEventSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Member")(req, res, next);
+      },
+    );
+  }
+
+  if (eventType === "GET_TICKET_COMMENTS") {
+    return validateResource(GetTicketCommentsSchema)(
+      req,
+      res,
+      (validationErr) => {
+        if (validationErr) return next(validationErr);
+        return authorizeResource("Viewer")(req, res, next);
       },
     );
   }

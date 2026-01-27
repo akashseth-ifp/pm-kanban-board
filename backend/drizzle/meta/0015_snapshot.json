@@ -1,6 +1,6 @@
 {
-  "id": "f4db8d29-5fb0-4705-a9ff-984df15e1b95",
-  "prevId": "8fa2b89a-1228-4940-84f0-26cda818e018",
+  "id": "a52feea3-f485-4651-b6bc-84e23f1ada3c",
+  "prevId": "f4db8d29-5fb0-4705-a9ff-984df15e1b95",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -406,11 +406,11 @@
       "checkConstraints": {
         "event_type_check": {
           "name": "event_type_check",
-          "value": "\"board_events\".\"event_type\" IN ('GET_BOARDS', 'ADD_BOARD', 'GET_BOARD', 'UPDATE_BOARD', 'DELETE_BOARD', 'GET_LISTS', 'ADD_LIST', 'UPDATE_LIST', 'MOVE_LIST', 'DELETE_LIST', 'GET_TICKETS', 'ADD_TICKET', 'GET_TICKET', 'MOVE_TICKET', 'UPDATE_TICKET', 'DELETE_TICKET')"
+          "value": "\"board_events\".\"event_type\" IN ('GET_BOARDS', 'ADD_BOARD', 'GET_BOARD', 'UPDATE_BOARD', 'DELETE_BOARD', 'GET_LISTS', 'ADD_LIST', 'UPDATE_LIST', 'MOVE_LIST', 'DELETE_LIST', 'GET_TICKETS', 'ADD_TICKET', 'GET_TICKET', 'MOVE_TICKET', 'UPDATE_TICKET', 'DELETE_TICKET', 'ADD_COMMENT', 'UPDATE_COMMENT', 'DELETE_COMMENT')"
         },
         "entity_type_check": {
           "name": "entity_type_check",
-          "value": "\"board_events\".\"entity_type\" IN ('Ticket', 'List', 'Board', 'Member')"
+          "value": "\"board_events\".\"entity_type\" IN ('Ticket', 'List', 'Board', 'Member', 'Comment')"
         }
       },
       "isRLSEnabled": false

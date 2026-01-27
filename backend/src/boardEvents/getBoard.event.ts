@@ -25,7 +25,7 @@ export type GetBoardEventResponse = {
 
 export const getBoardEvent = async (
   eventData: GetBoardEvent,
-  userId: string
+  userId: string,
 ) => {
   const { boardId } = eventData;
 
