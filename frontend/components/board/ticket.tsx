@@ -90,7 +90,6 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
     handleSubmit,
     setFocus,
     reset,
-    formState: { isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -116,7 +115,7 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
       onGenerateDragPreview: ({ nativeSetDragImage, location }) => {
         setCustomNativeDragPreview({
           nativeSetDragImage,
-          getOffset: ({ container }) => {
+          getOffset: () => {
             const rect = element.getBoundingClientRect();
             const x = location.initial.input.clientX - rect.left;
             const y = location.initial.input.clientY - rect.top;
@@ -198,7 +197,7 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
     onSuccess: () => {
       setIsEditing(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to update ticket");
       reset({ title: ticket.title });
     },
@@ -214,7 +213,7 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
     onSuccess: () => {
       toast.success("Ticket deleted");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to delete ticket");
     },
   });
@@ -370,3 +369,5 @@ export const Ticket = memo(({ ticketId, listId }: TicketProps) => {
     </>
   );
 });
+
+Ticket.displayName = "Ticket";
